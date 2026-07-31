@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0B5C3F">
+<title>حاسبة رولكس</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B5C3F'/><text y='68' x='50' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'>R</text></svg>">
+<style>
+:root{
+  --bg:#F6F5F1; --card:#fff; --line:#E6E3DA; --txt:#16201A; --mut:#7A8378;
+  --grn:#0B5C3F; --grnbg:#EDF4F0; --gold:#B08D3E; --red:#A34A3C;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,"Noto Sans Arabic",sans-serif;
+  padding:16px 12px calc(30px + env(safe-area-inset-bottom));
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none;
+}
+.wrap{max-width:480px;margin:0 auto}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit;background:var(--card);border:1.5px solid var(--line);color:var(--txt);
+  border-radius:12px;padding:12px 13px;font-size:16px;width:100%;outline:none;-webkit-user-select:text;user-select:text}
+input:focus,textarea:focus{border-color:var(--grn)}
+.num{font-variant-numeric:tabular-nums}
+.ltr{direction:ltr;text-align:left}
+
+/* الهيدر */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.title{font-size:19px;font-weight:700;color:var(--grn)}
+.btn-o{padding:8px 16px;border-radius:10px;font-size:13.5px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--grn)}
+.btn-o:disabled{color:var(--line)}
+
+/* زر الساعة */
+.watch{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:right}
+.watch .fam{font-size:11.5px;color:var(--mut);margin-bottom:2px}
+.watch .nm{font-size:17px;font-weight:700}
+.watch .rf{font-size:12px;color:var(--mut);direction:ltr;text-align:right}
+.watch .go{color:var(--grn);font-size:13px;font-weight:700;flex-shrink:0}
+
+/* بطاقة النتيجة */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:15px;margin-top:10px;text-align:center}
+.chip{background:var(--bg);border:1.5px dashed var(--line);border-radius:999px;padding:6px 16px;font-size:13px;color:var(--mut)}
+.chip.warn{border-color:var(--gold);color:var(--gold);font-weight:700}
+.big{font-size:52px;font-weight:700;color:var(--grn);line-height:1;margin-top:10px}
+.sub{font-size:14px;color:var(--mut);margin-top:3px}
+.note{font-size:11.5px;color:var(--gold);margin-top:6px}
+.buy{margin-top:12px;background:var(--grnbg);border-radius:12px;padding:10px 13px;display:flex;justify-content:space-between;align-items:center}
+.buy span:first-child{font-size:12.5px;color:var(--grn)}
+.buy span:last-child{font-size:17px;font-weight:700;color:var(--grn)}
+.row2{display:flex;gap:8px;margin-top:10px}
+.btn-p{flex:1;background:var(--card);color:var(--grn);border:1.5px solid var(--grn);border-radius:12px;padding:10px 0;font-size:14.5px;font-weight:700}
+.btn-p.on{background:var(--grn);color:#fff}
+.btn-s{flex:1;background:var(--card);color:var(--mut);border:1.5px solid var(--line);border-radius:12px;padding:10px 0;font-size:14.5px;font-weight:600}
+
+/* السنوات */
+.ylab{display:flex;justify-content:space-between;align-items:center;margin:12px 2px 7px;font-size:12.5px;color:var(--mut)}
+.ygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.y{padding:11px 0;border-radius:11px;font-size:15px;border:1.5px solid var(--line);background:var(--card);font-variant-numeric:tabular-nums}
+.y.on{background:var(--grn);color:#fff;border-color:var(--grn);font-weight:700}
+
+/* الكيباد */
+.pad{background:#D1D3D9;border-radius:14px;padding:8px;margin-top:14px;direction:ltr}
+.pad .g{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.k{height:56px;border-radius:8px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.35);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111}
+.k.plain{background:transparent;box-shadow:none}
+.k:active{background:#E6E7EB}
+.k.plain:active{background:rgba(0,0,0,.07)}
+.k b{font-size:25px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.k i{font-size:9px;letter-spacing:1.4px;color:#6D6D72;font-weight:600;font-style:normal;margin-top:2px}
+.link{width:100%;padding:9px 0;font-size:13px;color:var(--mut);margin-top:6px}
+
+/* الشيتات */
+.mask{position:fixed;inset:0;background:rgba(12,20,16,.5);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column}
+.sh-top{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sh-top b{font-size:16px;color:var(--grn)}
+.x{background:var(--bg);border-radius:999px;width:30px;height:30px;font-size:17px;color:var(--mut)}
+.sh-body{overflow-y:auto;padding:14px;flex:1;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.sh-foot{padding:12px;border-top:1px solid var(--line);flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+
+/* القوائم */
+.grp{font-size:12.5px;font-weight:700;color:var(--grn);margin:14px 0 6px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 13px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--card);width:100%;text-align:right;margin-bottom:5px}
+.opt.on{border-color:var(--grn);background:var(--grnbg)}
+.opt .n{font-size:14.5px;font-weight:600;display:block}
+.opt .r{font-size:11.5px;color:var(--mut);direction:ltr;display:block;text-align:right}
+.opt .p{font-size:12.5px;color:var(--grn);flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* الإعدادات */
+.lbl{font-size:11.5px;color:var(--mut);margin-bottom:4px;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.sec{font-size:12.5px;font-weight:700;color:var(--grn);margin:16px 0 8px}
+.bar{border-radius:11px;padding:8px 12px;font-size:11.5px;text-align:center;background:var(--bg);border:1.5px solid var(--line);color:var(--mut)}
+.bar.bad{background:#FBEDEA;border-color:var(--red);color:var(--red)}
+.bar.warn{background:#FBF4E4;border-color:var(--gold);color:var(--gold);font-weight:700;font-size:12.5px}
+.save{width:100%;border-radius:12px;padding:14px 0;font-size:15.5px;font-weight:700;background:#C9CEC8;color:#fff}
+.save.on{background:var(--grn)}
+.save.ok{background:#1F7A55}
+.small{font-size:11.5px;color:var(--mut);text-align:center;margin-top:10px}
+.mini{padding:11px 0;border-radius:11px;font-size:13.5px;font-weight:700;border:1.5px solid var(--grn);background:var(--card);color:var(--grn);flex:1}
+
+/* ملء الشاشة */
+.full{position:fixed;inset:0;background:var(--grn);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:70;padding:20px;color:#fff}
+.full .t1{color:#CFE3D8;font-size:17px;font-weight:600;text-align:center}
+.full .t2{color:#CFE3D8;font-size:15px;margin-top:4px}
+.full .n{font-size:19vw;font-weight:700;line-height:1.05;margin-top:12px;font-variant-numeric:tabular-nums}
+.full .t3{color:#CFE3D8;font-size:21px;font-weight:600}
+
+/* شريط العائلات والرفرنسات */
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.strip::-webkit-scrollbar{display:none}
+.f{flex:0 0 auto;padding:9px 15px;border-radius:11px;font-size:14px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--txt)}
+.f.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.f.add{border-style:dashed;color:var(--grn);font-weight:600}
+.igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.i{padding:9px 5px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
+   display:flex;flex-direction:column;gap:1px;align-items:center;justify-content:center;min-height:56px}
+.i.on{border-color:var(--grn);background:var(--grnbg)}
+.i .n{font-size:12.5px;font-weight:600;line-height:1.25;color:var(--txt)}
+.i.on .n{color:var(--grn)}
+.i .r{font-size:11px;color:var(--mut);direction:ltr;font-variant-numeric:tabular-nums}
+.i.add{border-style:dashed;color:var(--grn);justify-content:center;font-size:13px;font-weight:600}
+.ystrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.yb{flex:0 0 auto;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:600;border:1.5px solid var(--line);
+    background:var(--card);display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;color:var(--txt)}
+.yb.on{border-color:var(--grn);background:var(--grnbg);color:var(--grn)}
+.dot{width:8px;height:8px;border-radius:99px;display:inline-block}
+.head-r{font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pr{background:var(--card);border-radius:16px;padding:16px;width:100%;max-width:340px}
+.mask.c{align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+// ===== بيانات وأسعار رولكس =====
+const CURRENT_YEAR = 2026, MIN_YEAR = 2006;
+const LAD = { g: 80, gw: 120, w: 50, o: 50 };
+const it = (id, name, ref, u, nA, nB, mA, mB, note) => ({
+  id, name, ref, usedPct: u, nMin: nA, nMax: nB, mMin: mA, mMax: mB,
+  note: note || "", ...LAD
+});
+// nMin/nMax = مارجن جديد   |   mMin/mMax = مارجن مستخدم
+const S = [7, 8, 10, 8, 10];        // قياسي
+const D36 = [7, 11, 13, 15, 17];    // ديت جست / لاند دويلر 36
+const LDY = [7, 8, 10, 12, 15];     // نسائي
+const DAY = [7, 5, 5, 5, 5];        // دايتونا
+const SKY = [5, 7, 7, 7, 7];        // سكاي دويلر
+
+const FAMS = [
+  { id: "dj", name: "ديت جست", items: [
+    it("dj41sN", "طوق ستيل 41 — جديد", "126300", ...S),
+    it("dj41sO", "طوق ستيل 41 — قديم", "116300", ...S),
+    it("dj41gN", "طوق ذهب 41 — جديد", "126334", ...S),
+    it("dj41gO", "طوق ذهب 41 — قديم", "116334", ...S),
+    it("dj36sN", "طوق ستيل 36 — جديد", "126200", ...D36),
+    it("dj36sO", "طوق ستيل 36 — قديم", "116200", ...D36),
+    it("dj36gN", "طوق ذهب 36 — جديد", "126234", ...D36),
+    it("dj36gO", "طوق ذهب 36 — قديم", "116234", ...D36),
+    it("djLady", "ديت جست نسائي", "", ...LDY),
+  ]},
+  { id: "ld", name: "لاند دويلر", items: [
+    it("ld40", "أبيض 40", "127334", ...S),
+    it("ld36", "أبيض 36", "127234", ...D36),
+  ]},
+  { id: "gmt", name: "GMT", items: [
+    it("pepsi", "بيبسي", "126710BLRO", ...S),
+    it("batman", "باتمان", "126710BLNR", ...S),
+    it("sprite", "سبرايت", "126720VTNR", ...S),
+    it("bruce", "بروس وين", "126710GRNR", 5, 8, 10, 8, 10),
+  ]},
+  { id: "day", name: "ديتونا", items: [
+    it("dayN", "رفرنس جديد", "126500LN", ...DAY),
+    it("dayO", "رفرنس قديم", "116500LN", ...DAY),
+    it("dayX", "الإصدار الأقدم", "116520", ...DAY),
+  ]},
+  { id: "sky", name: "سكاي دويلر", items: [
+    it("skyN", "رفرنس جديد", "336934", ...SKY),
+    it("skyO", "رفرنس قديم", "326934", ...SKY),
+  ]},
+  { id: "sub", name: "سبمارينر", items: [
+    it("starbucks", "ستاربكس", "126610LV", ...S),
+    it("hulk", "هولك", "116610LV", ...S),
+    it("subDN", "أسود ديت — جديد", "126610LN", ...S),
+    it("subDO", "أسود ديت — قديم", "116610LN", ...S),
+    it("subND", "أسود نو ديت — جديد", "124060", ...S),
+    it("subNDO", "أسود نو ديت — قديم", "114060", ...S),
+  ]},
+  { id: "exp1", name: "اكسبلورر 1", items: [
+    it("exp1a", "سايز 40", "224270", ...S),
+    it("exp1b", "سايز 36", "124270", ...S),
+  ]},
+  { id: "exp2", name: "اكسبلورر 2", items: [
+    it("exp2N", "رفرنس جديد", "226570", ...S),
+    it("exp2O", "رفرنس قديم", "216570", ...S),
+  ]},
+  { id: "air", name: "ايركنج", items: [
+    it("airN", "رفرنس جديد", "126900", ...S),
+    it("airO", "رفرنس قديم", "116900", ...S),
+  ]},
+  { id: "ym40", name: "يخت ماستر 40", items: [
+    it("ym40N", "رفرنس جديد", "126622", ...S),
+    it("ym40O", "رفرنس قديم", "116622", ...S),
+    it("ymBlue", "أزرق", "116680", ...S),
+  ]},
+  { id: "ym36", name: "يخت ماستر 36", items: [
+    it("ym36", "الجديد والقديم", "268622", 7, 8, 10, 8, 10, "السايز الفعلي 35"),
+  ]},
+  { id: "ymti", name: "يخت ماستر تيتانيوم", items: [
+    it("ymti", "تيتانيوم", "226627", ...S),
+  ]},
+  { id: "sea", name: "سي دويلر", items: [
+    it("sea", "سي دويلر", "126600", ...S),
+  ]},
+  { id: "deep", name: "ديب سي", items: [
+    it("deep", "أزرق وأسود", "136660", ...S),
+  ]},
+  { id: "opg", name: "بربجوال رمادي", items: [
+    it("opg41", "سايز 41", "134303", ...S),
+    it("opg36", "سايز 36", "126003", ...S),
+  ]},
+  { id: "op", name: "بربجوال ملونة", items: [
+    it("op41N", "41 — جديد", "134300", ...S),
+    it("op41O", "41 — قديم", "124300", ...S),
+    it("op36N", "36 — جديد", "126000", ...S),
+    it("op36O", "36 — قديم", "116000", ...S),
+    it("op34N", "34 — جديد", "124200", ...S),
+    it("op34O", "34 — قديم", "114200", ...S),
+    it("op31N", "31 — جديد", "277200", ...LDY),
+    it("op31O", "31 — قديم", "177200", ...LDY),
+    it("op28N", "28 — جديد", "276200", ...LDY),
+    it("op28O", "28 — قديم", "176200", ...LDY),
+  ]},
+];
+// ===== التخزين =====
+const KEY = "rolexPricer.v1";
+const save = (o) => { try { localStorage.setItem(KEY, JSON.stringify(o)); return true; } catch (e) { return false; } };
+const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
+
+// ===== مزامنة القواعد بين الأجهزة (Supabase) =====
+// يزامن فقط "القواعد" (fams/deleted) - الأسعار المدخلة وسجل آخر ساعة محلية لكل جهاز
+const SUPA_URL = "https://mfwiznrzcldcgrlzcmri.supabase.co";
+const SUPA_KEY = "sb_publishable_nzUBYC-lPrEqbgbUclc7Kw_riHjoKOf";
+const SUPA_HEADERS = { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` };
+let lastRemoteStamp = null, syncOnline = null;
+
+async function remoteFetch() {
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/pricing_rules?id=eq.shared&select=data,updated_at`, { headers: SUPA_HEADERS });
+    if (!r.ok) { syncOnline = false; return null; }
+    const rows = await r.json();
+    syncOnline = true;
+    return rows[0] || null;
+  } catch (e) { syncOnline = false; return null; }
+}
+async function remotePush() {
+  try {
+    const body = JSON.stringify({ data: { fams: cfg.fams, deleted: cfg.deleted }, updated_at: new Date().toISOString() });
+    const r = await fetch(`${SUPA_URL}/rest/v1/pricing_rules?id=eq.shared`, {
+      method: "PATCH",
+      headers: { ...SUPA_HEADERS, "Content-Type": "application/json", Prefer: "return=representation" },
+      body,
+    });
+    if (r.ok) { const rows = await r.json(); if (rows[0]) lastRemoteStamp = rows[0].updated_at; syncOnline = true; }
+    else syncOnline = false;
+  } catch (e) { syncOnline = false; }
+  render();
+}
+function applyRemoteFams(remoteData) {
+  if (!remoteData || !remoteData.fams || !remoteData.fams.length) return;
+  cfg.fams = remoteData.fams.map((f) => ({ ...f, items: (f.items || []).map(normItem) }));
+  cfg.deleted = remoteData.deleted || [];
+  save(cfg);
+}
+async function pollRemote(silent) {
+  const row = await remoteFetch();
+  if (!row) { render(); return; }
+  if (row.updated_at !== lastRemoteStamp) {
+    const changed = lastRemoteStamp !== null;
+    lastRemoteStamp = row.updated_at;
+    applyRemoteFams(row.data);
+    let f = cfg.fams.find((x) => x.id === famId) || cfg.fams[0];
+    famId = f.id;
+    if (!f.items.find((x) => x.id === itemId)) itemId = f.items[0].id;
+    if (changed && !silent) toast("القواعد تحدثت من جهاز ثاني ✓");
+    render();
+  } else render();
+}
+
+// ===== الحالة =====
+let cfg, famId, itemId, year = CURRENT_YEAR, price = "", altPick = null,
+    sheet = null, q = "", details = false, draft = null, dirty = false, saveState = null, ioText = "", ioMsg = "";
+const normBase = { usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50, note: "", ref: "" };
+const normItem = (i) => ({ ...normBase, ...i });
+
+function boot() {
+  const s = load();
+  const base = normBase;
+  const norm = normItem;
+  cfg = { rate: 84, curr2: "ريال", prices: {}, lastItem: null, deleted: [], fams: null };
+
+  if (s && s.fams && s.fams.length) {
+    // المحفوظ هو المرجع — يشمل ما أضافه المستخدم
+    cfg.rate = s.rate ?? cfg.rate;
+    cfg.curr2 = s.curr2 ?? cfg.curr2;
+    cfg.prices = s.prices || {};
+    cfg.lastItem = s.lastItem || null;
+    cfg.deleted = s.deleted || [];
+    cfg.fams = s.fams.map((f) => ({ ...f, items: (f.items || []).map(norm) }));
+    // أضف أي عائلة/رفرنس افتراضي جديد لم يحذفه المستخدم ولا يملكه
+    for (const df of FAMS) {
+      if (cfg.deleted.includes(df.id)) continue;
+      const uf = cfg.fams.find((x) => x.id === df.id);
+      if (!uf) { cfg.fams.push(JSON.parse(JSON.stringify(df))); continue; }
+      for (const di of df.items) {
+        if (cfg.deleted.includes(di.id)) continue;
+        if (!uf.items.find((x) => x.id === di.id)) uf.items.push(norm(JSON.parse(JSON.stringify(di))));
+      }
+    }
+  } else {
+    cfg.fams = JSON.parse(JSON.stringify(FAMS)).map((f) => ({ ...f, items: f.items.map(norm) }));
+  }
+
+  let f = cfg.fams[0], i = f.items[0];
+  if (cfg.lastItem) for (const ff of cfg.fams) { const x = ff.items.find((y) => y.id === cfg.lastItem); if (x) { f = ff; i = x; break; } }
+  famId = f.id; itemId = i.id; price = cfg.prices[i.id] || "";
+}
+
+const curFam = () => cfg.fams.find((f) => f.id === famId) || cfg.fams[0];
+const curItem = () => { const f = curFam(); return f.items.find((i) => i.id === itemId) || f.items[0]; };
+const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; return save(cfg); };
+
+// ===== الحساب =====
+const fmt = (n) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
+const cardOf = (y) => y >= 2021 ? "قرنتي جديد" : y >= 2016 ? "قرنتي أبيض" : "قرنتي زيتي";
+const riyal = (k) => Math.round(k / (cfg.rate || 84)) * 1000;
+
+function round5090(v) {
+  const b0 = Math.floor(v / 100) * 100, c = [];
+  for (const b of [b0 - 100, b0, b0 + 100]) c.push(b + 50, b + 90);
+  let d = null, u = null;
+  for (const x of c) { if (x <= v && (d === null || x > d)) d = x; if (x >= v && (u === null || x < u)) u = x; }
+  if (d === null) return { main: u, alt: null };
+  if (u === null) return { main: d, alt: null };
+  if (d === u) return { main: d, alt: null };
+  const m = (v - d) <= (u - v) ? d : u;
+  return { main: m, alt: m === d ? u : d };
+}
+const r90 = (v) => round5090(Math.max(v, 0)).main;
+
+function calc(y, p, it) {
+  const lines = []; let run = p;
+  const d = p * (it.usedPct / 100);
+  lines.push({ t: `جديد ← مستخدم ${it.usedPct}%`, v: d }); run -= d;
+  const seg = {}, ord = [];
+  const push = (k, per, lab) => { if (!seg[k]) { seg[k] = { c: 0, per, lab }; ord.push(k); } seg[k].c++; };
+  for (let x = CURRENT_YEAR; x > y; x--) {
+    if (x >= 2022) push("g", it.g, "سنوات القرنتي الجديد");
+    else if (x === 2021) { push("g", it.g, "سنوات القرنتي الجديد"); push("gw", it.gw, "فرق القرنتي: جديد ← أبيض"); }
+    else if (x >= 2016) push("w", it.w, "سنوات القرنتي الأبيض");
+    else push("o", it.o, "سنوات القرنتي الزيتي");
+  }
+  for (const k of ord) {
+    const s2 = seg[k], tot = s2.c * s2.per; run -= tot;
+    lines.push({ t: k === "gw" ? s2.lab : `${s2.lab}: ${s2.c} × ${s2.per}`, v: tot });
+  }
+  const exact = Math.max(run, 0), r = round5090(exact);
+  return { lines, exact, main: r.main, alt: r.alt };
+}
+const buyOf = (sell, it) => {
+  const a = r90(sell * (1 - it.mMax / 100)), b = r90(sell * (1 - it.mMin / 100));
+  return { lo: Math.min(a, b), hi: Math.max(a, b) };
+};
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $ = (id) => document.getElementById(id);
+let toastT = null;
+function toast(m) { ioMsg = m; render(); clearTimeout(toastT); toastT = setTimeout(() => { ioMsg = ""; render(); }, 2600); }
+const eraDot = (y) => y >= 2021 ? "#0B5C3F" : y >= 2016 ? "#9AA096" : "#7C7F4A";
+
+function render() {
+  const activeEl = document.activeElement;
+  const activeId = activeEl && activeEl.id;
+  const selStart = activeId && "selectionStart" in activeEl ? activeEl.selectionStart : null;
+  const selEnd = activeId && "selectionEnd" in activeEl ? activeEl.selectionEnd : null;
+  const scrollY = window.scrollY;
+  const shBodyOld = document.querySelector(".sh-body");
+  const shScroll = shBodyOld ? shBodyOld.scrollTop : null;
+
+  const fam = curFam(), it = curItem();
+  const p = parseFloat(price), has = !isNaN(p) && p > 0;
+  let R = null;
+  if (has) {
+    const c0 = calc(year, p, it);
+    const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
+    R = { ...c0, sell, alt: sell === c0.main ? c0.alt : c0.main, buy: buyOf(sell, it) };
+  }
+  const years = [];
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) years.push(y);
+
+  let h = `
+  <div class="top">
+    <div class="title">حاسبة رولكس</div>
+    <button class="btn-o" ${has ? "" : "disabled"} onclick="openSheet('table')">الجدول</button>
+  </div>
+
+  <div class="strip">
+    ${cfg.fams.map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
+    <button class="f add" onclick="ask('fam')">+ عائلة</button>
+  </div>
+
+  <div class="igrid">
+    ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
+      <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
+    <button class="i add" onclick="ask('item')">+ رفرنس</button>
+  </div>
+
+  <div class="ystrip">
+    ${years.map((y) => `<button class="yb ${y === year ? "on" : ""}" onclick="setYear(${y})">
+      <span class="dot" style="background:${eraDot(y)}"></span>${y}</button>`).join("")}
+  </div>
+
+  <div class="card">
+    <div class="head-r">
+      <span>${esc(fam.name)} ${esc(it.name)}${it.ref ? ` • <span class="num ltr" style="display:inline-block">${esc(it.ref)}</span>` : ""}</span>
+      <span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(p) : "—"}</span>
+    </div>
+    <div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>
+    ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
+    <div class="big num" onclick="${has ? "openSheet('full')" : ""}">${R ? fmt(R.sell) : "—"}</div>
+    <div class="sub num">د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}</div>
+    ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(R.alt)}</button>` : ""}
+    ${R ? `<div class="buy"><span>تشتري مستخدم بـ (${it.mMin === it.mMax ? it.mMin : it.mMin + "–" + it.mMax}%)</span>
+      <span class="num">${R.buy.lo === R.buy.hi ? fmt(R.buy.lo) : fmt(R.buy.lo) + " – " + fmt(R.buy.hi)}</span></div>` : ""}
+    ${R ? `<div class="row2">
+      <button class="btn-p" onclick="copyOne()">نسخ</button>
+      <button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء" : "التفاصيل"}</button></div>` : ""}
+    ${R && details ? `<div style="margin-top:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
+      ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
+      <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
+    </div>` : ""}
+    ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد بالأرقام تحت</div>`}
+  </div>
+
+  <div class="pad"><div class="g">
+    ${[["1", ""], ["2", "ABC"], ["3", "DEF"], ["4", "GHI"], ["5", "JKL"], ["6", "MNO"], ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"], [".", null], ["0", ""], ["⌫", null]]
+      .map(([k, l]) => `<button class="k ${l === null ? "plain" : ""}" onclick="key('${k}')"><b>${k}</b>${l ? `<i>${l}</i>` : ""}</button>`).join("")}
+  </div></div>
+  <button class="link" onclick="key('C')">مسح السعر</button>
+  <button class="link" onclick="openRules()">الإعدادات ⚙</button>`;
+
+  if (sheet === "table" && has) h += sheetTable(p, it, fam, years);
+  if (sheet === "rules") h += sheetRules(fam, it);
+  if (sheet === "ask") h += sheetAsk();
+  if (sheet === "full" && R) h += `<div class="full" onclick="closeSheet()">
+      <div class="t1">${esc(fam.name)} — ${esc(it.name)}</div>
+      <div class="t2 num">${year} • ${cardOf(year)}</div>
+      <div class="n">${fmt(R.sell)}</div>
+      <div class="t3 num">د.ك • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}</div></div>`;
+
+  $("app").innerHTML = h;
+  if (sheet === "ask") { const e = $("askin"); if (e) { e.value = askVal; e.focus(); } }
+
+  if (activeId) {
+    const el = $(activeId);
+    if (el) {
+      el.focus({ preventScroll: true });
+      if (selStart != null && el.setSelectionRange) { try { el.setSelectionRange(selStart, selEnd); } catch (e) {} }
+    }
+  }
+  const shBodyNew = document.querySelector(".sh-body");
+  if (shBodyNew && shScroll != null) shBodyNew.scrollTop = shScroll;
+  window.scrollTo(0, scrollY);
+}
+
+function sheetAsk() {
+  const t = askType === "fam" ? "اسم العائلة الجديدة" : "اسم الرفرنس الجديد";
+  return `<div class="mask c" onclick="closeSheet()"><div class="pr" onclick="event.stopPropagation()">
+    <div style="font-weight:700;color:var(--grn);margin-bottom:10px">${t}</div>
+    <input id="askin" placeholder="${askType === "fam" ? "مثال: تشيليني" : "مثال: طوق ذهب 41 — جديد"}" oninput="askVal=this.value">
+    ${askType === "item" ? `<input id="askref" class="ltr" style="margin-top:8px" placeholder="الرفرنس (اختياري)" oninput="askRef=this.value" value="${esc(askRef)}">` : ""}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-s" onclick="closeSheet()">إلغاء</button>
+      <button class="btn-p" onclick="doAdd()">إضافة</button>
+    </div></div></div>`;
+}
+
+function sheetTable(p, it, fam, years) {
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>${esc(it.name)} — الجديد ${fmt(p)}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it);
+        return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
+          <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
+          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(r.main)}</span>
+          <span class="num" style="font-size:12px;color:var(--mut)">شراء ${fmt(b.lo)}–${fmt(b.hi)}</span></button>`;
+      }).join("")}
+    </div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">نسخ الجدول</button></div>
+  </div></div>`;
+}
+
+function sheetRules(fam, it) {
+  const d = draft, stOK = save(cfg);
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>إعدادات ${esc(it.name)}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      <div class="bar ${stOK ? "" : "bad"}">التخزين: ${stOK ? "يعمل ✓ — تعديلاتك تنحفظ على جهازك" : "لا يعمل ✗ — استخدم النسخة الاحتياطية تحت"}</div>
+      ${dirty ? '<div class="bar warn" style="margin-top:8px">فيه تعديلات ما انحفظت — اضغط «حفظ التعديلات»</div>' : ""}
+
+      <div class="sec">الرفرنس: ${esc(it.name)}</div>
+      <span class="lbl">الاسم</span><input id="d_name" value="${esc(d.name)}" oninput="setD('name',this.value)">
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">الرفرنس</span><input id="d_ref" class="ltr" value="${esc(d.ref)}" oninput="setD('ref',this.value)"></div>
+        <div><span class="lbl">ملاحظة</span><input id="d_note" value="${esc(d.note)}" oninput="setD('note',this.value)"></div>
+      </div>
+      <div style="margin-top:8px"><span class="lbl">جديد ← مستخدم %</span><input id="d_usedPct" inputmode="decimal" value="${esc(d.usedPct)}" oninput="setD('usedPct',this.value)"></div>
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">مارجن جديد من %</span><input id="d_nMin" inputmode="decimal" value="${esc(d.nMin)}" oninput="setD('nMin',this.value)"></div>
+        <div><span class="lbl">مارجن جديد إلى %</span><input id="d_nMax" inputmode="decimal" value="${esc(d.nMax)}" oninput="setD('nMax',this.value)"></div>
+      </div>
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">مارجن مستخدم من %</span><input id="d_mMin" inputmode="decimal" value="${esc(d.mMin)}" oninput="setD('mMin',this.value)"></div>
+        <div><span class="lbl">مارجن مستخدم إلى %</span><input id="d_mMax" inputmode="decimal" value="${esc(d.mMax)}" oninput="setD('mMax',this.value)"></div>
+      </div>
+
+      <div class="sec">سلّم السنوات — خاص بهذا الرفرنس</div>
+      <div class="g2">
+        <div><span class="lbl">قرنتي جديد / سنة</span><input id="d_g" inputmode="decimal" value="${esc(d.g)}" oninput="setD('g',this.value)"></div>
+        <div><span class="lbl">فرق جديد ← أبيض</span><input id="d_gw" inputmode="decimal" value="${esc(d.gw)}" oninput="setD('gw',this.value)"></div>
+        <div><span class="lbl">قرنتي أبيض / سنة</span><input id="d_w" inputmode="decimal" value="${esc(d.w)}" oninput="setD('w',this.value)"></div>
+        <div><span class="lbl">قرنتي زيتي / سنة</span><input id="d_o" inputmode="decimal" value="${esc(d.o)}" oninput="setD('o',this.value)"></div>
+      </div>
+
+      <div class="sec">العائلة: ${esc(fam.name)}</div>
+      <span class="lbl">اسم العائلة</span><input id="d_famName" value="${esc(d.famName)}" oninput="setD('famName',this.value)">
+
+      <div class="sec">التحويل (عام)</div>
+      <div class="g2">
+        <div><span class="lbl">معامل القسمة (÷ ثم ×1000)</span><input id="d_rate" inputmode="decimal" value="${esc(d.rate)}" oninput="setD('rate',this.value)"></div>
+        <div><span class="lbl">اسم العملة الثانية</span><input id="d_curr2" value="${esc(d.curr2)}" oninput="setD('curr2',this.value)"></div>
+      </div>
+
+      <div class="sec">نسخة احتياطية</div>
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:8px">انسخ إعداداتك واحفظها بملاحظاتك. لو ضاعت الصقها هنا وارجعها.</div>
+      <div style="display:flex;gap:8px"><button class="mini" onclick="expCfg()">نسخ إعداداتي</button><button class="mini" onclick="impCfg()">استرجاع</button></div>
+      <textarea rows="3" class="ltr" style="margin-top:8px;font-size:12px" placeholder="الصق النص هنا للاسترجاع…" oninput="ioText=this.value">${esc(ioText)}</textarea>
+      ${ioMsg ? `<div style="font-size:12px;color:var(--grn);text-align:center;font-weight:600;margin-top:6px">${esc(ioMsg)}</div>` : ""}
+      <div class="small">التعديلات تخص هذا الرفرنس وحده ولا تمس أي ساعة ثانية</div>
+    </div>
+    <div class="sh-foot">
+      <button class="save ${saveState === "ok" ? "ok" : dirty ? "on" : ""}" onclick="saveRules()">
+        ${saveState === "ok" ? "تم الحفظ ✓" : dirty ? "حفظ التعديلات" : "محفوظ"}</button>
+    </div>
+  </div></div>`;
+}
+// ===== الحالة الإضافية =====
+let askType = "fam", askVal = "", askRef = "";
+
+// ===== التنقل =====
+function setYear(y) { year = y; altPick = null; render(); }
+function useAlt(v) { altPick = v; render(); }
+function pickFam(f) {
+  famId = f; const ff = curFam(); itemId = ff.items[0].id;
+  price = cfg.prices[itemId] || ""; altPick = null; cfg.lastItem = itemId; save(cfg); render();
+}
+function pickItem(i) {
+  itemId = i; price = cfg.prices[i] || ""; altPick = null; cfg.lastItem = i; save(cfg); render();
+}
+function openSheet(s) { sheet = s; render(); }
+function closeSheet() { sheet = null; render(); }
+
+// ===== إضافة عائلة / رفرنس =====
+function ask(t) { askType = t; askVal = ""; askRef = ""; sheet = "ask"; render(); }
+function uid() { return "u" + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36); }
+function doAdd() {
+  const nm = (askVal || "").trim();
+  if (!nm) { toast("اكتب الاسم أولاً"); return; }
+  if (askType === "fam") {
+    const id = uid();
+    cfg.fams.push({ id, name: nm, items: [{
+      id: uid(), name: "رفرنس 1", ref: "", note: "",
+      usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50,
+    }]});
+    famId = id; itemId = cfg.fams[cfg.fams.length - 1].items[0].id;
+  } else {
+    const f = curFam(), id = uid();
+    const base = curItem();
+    f.items.push({
+      id, name: nm, ref: (askRef || "").trim(), note: "",
+      usedPct: base.usedPct, nMin: base.nMin, nMax: base.nMax, mMin: base.mMin, mMax: base.mMax,
+      g: base.g, gw: base.gw, w: base.w, o: base.o,
+    });
+    itemId = id;
+  }
+  price = ""; cfg.lastItem = itemId; save(cfg);
+  sheet = null; render();
+  toast(askType === "fam" ? "أُضيفت العائلة ✓" : "أُضيف الرفرنس ✓");
+  remotePush();
+}
+
+// ===== الكيباد =====
+function key(k) {
+  let v = price;
+  if (k === "C") v = "";
+  else if (k === "⌫") v = v.slice(0, -1);
+  else if (k === ".") { if (v && !v.includes(".")) v += "."; }
+  else if (v.replace(".", "").length < 8) v = (v === "0" ? "" : v) + k;
+  price = v; altPick = null; persist(); render();
+}
+document.addEventListener("keydown", (e) => {
+  const t = document.activeElement && document.activeElement.tagName;
+  if (t === "INPUT" || t === "TEXTAREA") return;
+  if ((e.key >= "0" && e.key <= "9") || e.key === ".") key(e.key);
+  else if (e.key === "Backspace") { e.preventDefault(); key("⌫"); }
+  else if (e.key === "Escape") { if (sheet) closeSheet(); else key("C"); }
+});
+
+// ===== الإعدادات =====
+function openRules() {
+  const it = curItem(), f = curFam();
+  draft = {
+    name: it.name, ref: it.ref, note: it.note, famName: f.name,
+    usedPct: String(it.usedPct),
+    nMin: String(it.nMin), nMax: String(it.nMax),
+    mMin: String(it.mMin), mMax: String(it.mMax),
+    g: String(it.g), gw: String(it.gw), w: String(it.w), o: String(it.o),
+    rate: String(cfg.rate), curr2: cfg.curr2,
+  };
+  dirty = false; saveState = null; ioMsg = ""; sheet = "rules"; render();
+}
+function setD(k, v) { draft[k] = v; dirty = true; saveState = null; render(); }
+
+function saveRules() {
+  if (!dirty || !draft) return;
+  const n = (v, fb) => { const x = parseFloat(v); return isNaN(x) ? fb : x; };
+  const it = curItem(), f = curFam();
+  Object.assign(it, {
+    name: (draft.name || "").trim() || it.name, ref: (draft.ref || "").trim(), note: draft.note,
+    usedPct: n(draft.usedPct, it.usedPct),
+    nMin: n(draft.nMin, it.nMin), nMax: n(draft.nMax, it.nMax),
+    mMin: n(draft.mMin, it.mMin), mMax: n(draft.mMax, it.mMax),
+    g: n(draft.g, it.g), gw: n(draft.gw, it.gw), w: n(draft.w, it.w), o: n(draft.o, it.o),
+  });
+  f.name = (draft.famName || "").trim() || f.name;
+  cfg.rate = n(draft.rate, cfg.rate);
+  cfg.curr2 = draft.curr2 || cfg.curr2;
+
+  const wrote = save(cfg);
+  let ok = false;
+  if (wrote) {
+    const back = load();
+    const chk = back && back.fams && back.fams.map((x) => x.items).flat().find((x) => x.id === it.id);
+    ok = !!(chk && Number(chk.mMin) === it.mMin && Number(chk.g) === it.g);
+  }
+  dirty = false; saveState = ok ? "ok" : null;
+  if (!ok) ioMsg = "تعذّر الحفظ — انسخ إعداداتك احتياطياً";
+  render();
+  if (ok) remotePush();
+  setTimeout(() => { saveState = null; render(); }, 2200);
+}
+
+// ===== نسخ =====
+function copyTxt(t) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+  const a = document.createElement("textarea");
+  a.value = t; a.style.position = "fixed"; a.style.opacity = "0";
+  document.body.appendChild(a); a.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(a);
+  return Promise.resolve();
+}
+function expCfg() { copyTxt(JSON.stringify(cfg)).then(() => toast("تم نسخ إعداداتك ✓")); }
+function impCfg() {
+  try {
+    const o = JSON.parse(ioText);
+    if (!o || !o.fams) throw 0;
+    localStorage.setItem(KEY, JSON.stringify(o));
+    boot(); ioText = ""; sheet = null; render(); toast("تم الاسترجاع ✓");
+  } catch (e) { toast("النص غير صالح"); }
+}
+function copyOne() {
+  const it = curItem(), fam = curFam(), p = parseFloat(price);
+  const c0 = calc(year, p, it);
+  const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
+  const b = buyOf(sell, it);
+  copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\nالبيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+    .then(() => toast("تم النسخ ✓"));
+}
+function copyTable() {
+  const it = curItem(), fam = curFam(), p = parseFloat(price);
+  const rows = [`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(p)} د.ك`];
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(calc(y, p, it).main)} د.ك`);
+  copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
+}
+
+boot(); render();
+pollRemote(true);
+setInterval(() => pollRemote(false), 5000);
+</script></body></html>
