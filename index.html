@@ -266,8 +266,9 @@ function doLogin() {
   if (!acc || acc.pass !== loginPass) { loginErr = "بيانات الدخول غير صحيحة"; loginPass = ""; render(); return; }
   auth = { user: u, role: acc.role }; saveAuth(auth);
   loginErr = ""; loginPass = ""; render();
+  startHeartbeat();
 }
-function logout() { auth = null; saveAuth(null); render(); }
+function logout() { stopHeartbeat(); auth = null; saveAuth(null); render(); }
 function renderLogin() {
   $("app").innerHTML = `
   <div class="top"><div class="title">حاسبة رولكس</div></div>
@@ -313,6 +314,48 @@ async function remotePush() {
   } catch (e) { syncOnline = false; }
   render();
 }
+// ===== جلسات نشطة (لكشف مشاركة الباسورد) =====
+const DEVICE_KEY = "rolexPricer.deviceId.v1";
+const ACTIVE_WINDOW_MS = 90 * 1000; // آخر نبضة خلال آخر 90 ثانية = "نشط الآن"
+function getDeviceId() {
+  let id = null;
+  try { id = localStorage.getItem(DEVICE_KEY); } catch (e) {}
+  if (!id) { id = uid(); try { localStorage.setItem(DEVICE_KEY, id); } catch (e) {} }
+  return id;
+}
+let heartbeatTimer = null;
+async function sendHeartbeat() {
+  if (!auth) return;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/active_sessions`, {
+      method: "POST",
+      headers: { ...SUPA_HEADERS, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify({ id: getDeviceId(), role: auth.role, user_name: auth.user, last_seen: new Date().toISOString() }),
+    });
+  } catch (e) {}
+}
+function startHeartbeat() {
+  sendHeartbeat();
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(sendHeartbeat, 25000);
+}
+function stopHeartbeat() {
+  if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+  try {
+    fetch(`${SUPA_URL}/rest/v1/active_sessions?id=eq.${getDeviceId()}`, { method: "DELETE", headers: SUPA_HEADERS });
+  } catch (e) {}
+}
+let sessionsView = null, sessionsLoading = false;
+async function loadActiveSessions() {
+  sessionsLoading = true; render();
+  try {
+    const cutoff = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+    const r = await fetch(`${SUPA_URL}/rest/v1/active_sessions?last_seen=gte.${cutoff}&select=id,role,user_name,last_seen&order=last_seen.desc`, { headers: SUPA_HEADERS });
+    sessionsView = r.ok ? await r.json() : [];
+  } catch (e) { sessionsView = []; }
+  sessionsLoading = false; render();
+}
+
 function applyRemoteFams(remoteData) {
   if (!remoteData || !remoteData.fams || !remoteData.fams.length) return;
   cfg.fams = remoteData.fams.map((f) => ({ ...f, items: (f.items || []).map(normItem) }));
@@ -496,11 +539,13 @@ function render() {
   <button class="link" onclick="key('C')">مسح السعر</button>
   <div style="display:flex;gap:8px;margin-top:2px">
     ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">الإعدادات ⚙</button>` : ""}
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">الجلسات 👥</button>` : ""}
     <button class="link" style="flex:1;margin-top:0" onclick="logout()">خروج (${esc(auth.user)})</button>
   </div>`;
 
   if (sheet === "table" && has) h += sheetTable(p, it, fam, years);
   if (sheet === "rules") h += sheetRules(fam, it);
+  if (sheet === "sessions") h += sheetSessions();
   if (sheet === "ask") h += sheetAsk();
   if (sheet === "full" && R) h += `<div class="full" onclick="closeSheet()">
       <div class="t1">${esc(fam.name)} — ${esc(it.name)}</div>
@@ -548,6 +593,43 @@ function sheetTable(p, it, fam, years) {
     </div>
     <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">نسخ الجدول</button></div>
   </div></div>`;
+}
+
+function timeAgo(iso) {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `قبل ${s} ث`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `قبل ${m} د`;
+  return `قبل ${Math.floor(m / 60)} س`;
+}
+function sheetSessions() {
+  const rows = sessionsView || [];
+  const adminRows = rows.filter((r) => r.role === "admin");
+  const viewerRows = rows.filter((r) => r.role !== "admin");
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>الجلسات النشطة الآن</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:10px">أي جهاز بعث نبضة خلال آخر ٩٠ ثانية يُعتبر نشط الآن. لو شفت أكثر من جهاز بنفس الحساب بنفس الوقت، يعني الباسورد متشارك.</div>
+      ${sessionsLoading ? `<div class="bar">جاري التحميل…</div>` : `
+      <div class="g2">
+        <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Admin</span><span class="p" style="font-size:20px;margin-top:4px">${adminRows.length}</span></div>
+        <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Purchase</span><span class="p" style="font-size:20px;margin-top:4px">${viewerRows.length}</span></div>
+      </div>
+      <div class="sec">التفاصيل</div>
+      ${rows.length === 0 ? `<div class="bar">ولا جهاز نشط الآن</div>` : rows.map((r) => `
+        <div class="opt">
+          <span class="n">${esc(r.user_name)} <span style="color:var(--mut);font-weight:400">(${esc(r.role)})</span></span>
+          <span class="p">${timeAgo(r.last_seen)}</span>
+        </div>`).join("")}
+      `}
+    </div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="loadActiveSessions()">تحديث</button></div>
+  </div></div>`;
+}
+function openSessions() {
+  if (!isAdmin()) return;
+  sheet = "sessions"; sessionsView = null; render();
+  loadActiveSessions();
 }
 
 function sheetRules(fam, it) {
@@ -792,4 +874,6 @@ auth = loadAuth();
 boot(); render();
 pollRemote(true);
 setInterval(() => pollRemote(false), 5000);
+if (auth) startHeartbeat();
+window.addEventListener("beforeunload", stopHeartbeat);
 </script></body></html>
