@@ -247,6 +247,43 @@ const KEY = "rolexPricer.v1";
 const save = (o) => { try { localStorage.setItem(KEY, JSON.stringify(o)); return true; } catch (e) { return false; } };
 const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
 
+// ===== تسجيل الدخول =====
+// بوابة على مستوى الواجهة فقط - القراءة/الكتابة الفعلية بقاعدة Supabase
+// تستخدم مفتاح anon عام (نفس المفتاح لكل الأجهزة)، فهذي ليست حماية تشفيرية
+// حقيقية، بس تمنع أي شخص عادي يفتح الرابط من التعديل أو الحذف بالخطأ.
+const ACCOUNTS = {
+  admin: { pass: "margin123@", role: "admin" },
+  purchase: { pass: "po321321@", role: "viewer" },
+};
+const AUTH_KEY = "rolexPricer.auth.v1";
+const loadAuth = () => { try { const r = localStorage.getItem(AUTH_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
+const saveAuth = (a) => { try { a ? localStorage.setItem(AUTH_KEY, JSON.stringify(a)) : localStorage.removeItem(AUTH_KEY); } catch (e) {} };
+const isAdmin = () => !!(auth && auth.role === "admin");
+let auth = null, loginUser = "", loginPass = "", loginErr = "";
+function doLogin() {
+  const u = (loginUser || "").trim();
+  const acc = ACCOUNTS[u];
+  if (!acc || acc.pass !== loginPass) { loginErr = "بيانات الدخول غير صحيحة"; loginPass = ""; render(); return; }
+  auth = { user: u, role: acc.role }; saveAuth(auth);
+  loginErr = ""; loginPass = ""; render();
+}
+function logout() { auth = null; saveAuth(null); render(); }
+function renderLogin() {
+  $("app").innerHTML = `
+  <div class="top"><div class="title">حاسبة رولكس</div></div>
+  <div class="card" style="margin-top:60px;text-align:right">
+    <div style="font-weight:700;color:var(--grn);margin-bottom:14px;font-size:16px;text-align:center">تسجيل الدخول</div>
+    <span class="lbl">اسم المستخدم</span>
+    <input id="loginUser" class="ltr" value="${esc(loginUser)}" oninput="loginUser=this.value" onkeydown="if(event.key==='Enter'){document.getElementById('loginPass').focus()}">
+    <div style="margin-top:10px"><span class="lbl">كلمة المرور</span>
+    <input id="loginPass" type="password" class="ltr" value="${esc(loginPass)}" oninput="loginPass=this.value" onkeydown="if(event.key==='Enter'){doLogin()}"></div>
+    ${loginErr ? `<div class="bar bad" style="margin-top:10px">${esc(loginErr)}</div>` : ""}
+    <button class="save on" style="margin-top:14px" onclick="doLogin()">دخول</button>
+  </div>`;
+  const e = $("loginUser");
+  if (e && !loginUser) e.focus(); else { const p = $("loginPass"); if (p && loginUser) p.focus(); }
+}
+
 // ===== مزامنة القواعد بين الأجهزة (Supabase) =====
 // يزامن فقط "القواعد" (fams/deleted) - الأسعار المدخلة وسجل آخر ساعة محلية لكل جهاز
 const SUPA_URL = "https://mfwiznrzcldcgrlzcmri.supabase.co";
@@ -388,6 +425,7 @@ function toast(m) { ioMsg = m; render(); clearTimeout(toastT); toastT = setTimeo
 const eraDot = (y) => y >= 2021 ? "#0B5C3F" : y >= 2016 ? "#9AA096" : "#7C7F4A";
 
 function render() {
+  if (!auth) { renderLogin(); return; }
   const activeEl = document.activeElement;
   const activeId = activeEl && activeEl.id;
   const selStart = activeId && "selectionStart" in activeEl ? activeEl.selectionStart : null;
@@ -415,13 +453,13 @@ function render() {
 
   <div class="strip">
     ${cfg.fams.map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
-    <button class="f add" onclick="ask('fam')">+ عائلة</button>
+    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ عائلة</button>` : ""}
   </div>
 
   <div class="igrid">
     ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
       <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
-    <button class="i add" onclick="ask('item')">+ رفرنس</button>
+    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ رفرنس</button>` : ""}
   </div>
 
   <div class="ystrip">
@@ -456,7 +494,10 @@ function render() {
       .map(([k, l]) => `<button class="k ${l === null ? "plain" : ""}" onclick="key('${k}')"><b>${k}</b>${l ? `<i>${l}</i>` : ""}</button>`).join("")}
   </div></div>
   <button class="link" onclick="key('C')">مسح السعر</button>
-  <button class="link" onclick="openRules()">الإعدادات ⚙</button>`;
+  <div style="display:flex;gap:8px;margin-top:2px">
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">الإعدادات ⚙</button>` : ""}
+    <button class="link" style="flex:1;margin-top:0" onclick="logout()">خروج (${esc(auth.user)})</button>
+  </div>`;
 
   if (sheet === "table" && has) h += sheetTable(p, it, fam, years);
   if (sheet === "rules") h += sheetRules(fam, it);
@@ -544,6 +585,12 @@ function sheetRules(fam, it) {
       <div class="sec">العائلة: ${esc(fam.name)}</div>
       <span class="lbl">اسم العائلة</span><input id="d_famName" value="${esc(d.famName)}" oninput="setD('famName',this.value)">
 
+      <div class="sec" style="color:var(--red)">حذف</div>
+      <div style="display:flex;gap:8px">
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteItem()">حذف هذا الرفرنس</button>
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteFam()">حذف العائلة كاملة</button>
+      </div>
+
       <div class="sec">التحويل (عام)</div>
       <div class="g2">
         <div><span class="lbl">معامل القسمة (÷ ثم ×1000)</span><input id="d_rate" inputmode="decimal" value="${esc(d.rate)}" oninput="setD('rate',this.value)"></div>
@@ -580,9 +627,10 @@ function openSheet(s) { sheet = s; render(); }
 function closeSheet() { sheet = null; render(); }
 
 // ===== إضافة عائلة / رفرنس =====
-function ask(t) { askType = t; askVal = ""; askRef = ""; sheet = "ask"; render(); }
+function ask(t) { if (!isAdmin()) return; askType = t; askVal = ""; askRef = ""; sheet = "ask"; render(); }
 function uid() { return "u" + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36); }
 function doAdd() {
+  if (!isAdmin()) return;
   const nm = (askVal || "").trim();
   if (!nm) { toast("اكتب الاسم أولاً"); return; }
   if (askType === "fam") {
@@ -627,6 +675,7 @@ document.addEventListener("keydown", (e) => {
 
 // ===== الإعدادات =====
 function openRules() {
+  if (!isAdmin()) return;
   const it = curItem(), f = curFam();
   draft = {
     name: it.name, ref: it.ref, note: it.note, famName: f.name,
@@ -641,7 +690,7 @@ function openRules() {
 function setD(k, v) { draft[k] = v; dirty = true; saveState = null; render(); }
 
 function saveRules() {
-  if (!dirty || !draft) return;
+  if (!isAdmin() || !dirty || !draft) return;
   const n = (v, fb) => { const x = parseFloat(v); return isNaN(x) ? fb : x; };
   const it = curItem(), f = curFam();
   Object.assign(it, {
@@ -667,6 +716,42 @@ function saveRules() {
   render();
   if (ok) remotePush();
   setTimeout(() => { saveState = null; render(); }, 2200);
+}
+
+// ===== حذف =====
+function markDeleted(id) { if (!cfg.deleted.includes(id)) cfg.deleted.push(id); }
+function deleteItem() {
+  if (!isAdmin()) return;
+  const f = curFam(), it = curItem();
+  if (f.items.length <= 1) { toast("ما تقدر تحذف آخر رفرنس بالعائلة — احذف العائلة كامل"); return; }
+  if (!confirm(`متأكد تبي تحذف "${it.name}"؟`)) return;
+  f.items = f.items.filter((x) => x.id !== it.id);
+  markDeleted(it.id);
+  delete cfg.prices[it.id];
+  itemId = f.items[0].id;
+  price = cfg.prices[itemId] || "";
+  cfg.lastItem = itemId;
+  save(cfg);
+  sheet = null; render();
+  toast("تم حذف الرفرنس ✓");
+  remotePush();
+}
+function deleteFam() {
+  if (!isAdmin()) return;
+  if (cfg.fams.length <= 1) { toast("ما تقدر تحذف آخر عائلة"); return; }
+  const f = curFam();
+  if (!confirm(`متأكد تبي تحذف عائلة "${f.name}" وكل مراجعها؟`)) return;
+  markDeleted(f.id);
+  for (const it of f.items) { markDeleted(it.id); delete cfg.prices[it.id]; }
+  cfg.fams = cfg.fams.filter((x) => x.id !== f.id);
+  const nf = cfg.fams[0];
+  famId = nf.id; itemId = nf.items[0].id;
+  price = cfg.prices[itemId] || "";
+  cfg.lastItem = itemId;
+  save(cfg);
+  sheet = null; render();
+  toast("تم حذف العائلة ✓");
+  remotePush();
 }
 
 // ===== نسخ =====
@@ -703,6 +788,7 @@ function copyTable() {
   copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
 }
 
+auth = loadAuth();
 boot(); render();
 pollRemote(true);
 setInterval(() => pollRemote(false), 5000);
