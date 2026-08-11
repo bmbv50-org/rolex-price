@@ -255,7 +255,7 @@ const ACCOUNTS = {
   admin: { pass: "margin123@", role: "admin" },
   purchase: { pass: "po321321@", role: "viewer" },
 };
-const AUTH_KEY = "rolexPricer.auth.v1";
+const AUTH_KEY = "rolexPricer.auth.v2";
 const loadAuth = () => { try { const r = localStorage.getItem(AUTH_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
 const saveAuth = (a) => { try { a ? localStorage.setItem(AUTH_KEY, JSON.stringify(a)) : localStorage.removeItem(AUTH_KEY); } catch (e) {} };
 const isAdmin = () => !!(auth && auth.role === "admin");
