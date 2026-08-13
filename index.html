@@ -379,7 +379,8 @@ async function pollRemote(silent) {
 
 // ===== الحالة =====
 let cfg, famId, itemId, year = CURRENT_YEAR, price = "", altPick = null,
-    sheet = null, q = "", details = false, draft = null, dirty = false, saveState = null, ioText = "", ioMsg = "";
+    sheet = null, q = "", details = false, draft = null, dirty = false, saveState = null, ioText = "", ioMsg = "",
+    mode = "used"; // "used" = مارجن مستخدم (الحساب الأصلي بعمر/قرنتي) | "new" = مارجن جديد مباشرة على السعر المدخل
 const normBase = { usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50, note: "", ref: "" };
 const normItem = (i) => ({ ...normBase, ...i });
 
@@ -457,8 +458,8 @@ function calc(y, p, it) {
   const exact = Math.max(run, 0), r = round5090(exact);
   return { lines, exact, main: r.main, alt: r.alt };
 }
-const buyOf = (sell, it) => {
-  const a = r90(sell * (1 - it.mMax / 100)), b = r90(sell * (1 - it.mMin / 100));
+const buyOf = (sell, min, max) => {
+  const a = r90(sell * (1 - max / 100)), b = r90(sell * (1 - min / 100));
   return { lo: Math.min(a, b), hi: Math.max(a, b) };
 };
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -479,11 +480,20 @@ function render() {
 
   const fam = curFam(), it = curItem();
   const p = parseFloat(price), has = !isNaN(p) && p > 0;
+  const isNew = mode === "new";
+  const buyMin = isNew ? it.nMin : it.mMin, buyMax = isNew ? it.nMax : it.mMax;
+  const buyPctTxt = buyMin === buyMax ? String(buyMin) : `${buyMin}–${buyMax}`;
   let R = null;
   if (has) {
-    const c0 = calc(year, p, it);
-    const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
-    R = { ...c0, sell, alt: sell === c0.main ? c0.alt : c0.main, buy: buyOf(sell, it) };
+    if (isNew) {
+      // مارجن جديد: يُطبّق مباشرة على السعر المدخل، بدون خصم عمر/قرنتي -
+      // الساعة جديدة، ما فيه "استخدام" نخصمه أول.
+      R = { sell: p, alt: null, lines: [], exact: p, buy: buyOf(p, buyMin, buyMax) };
+    } else {
+      const c0 = calc(year, p, it);
+      const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
+      R = { ...c0, sell, alt: sell === c0.main ? c0.alt : c0.main, buy: buyOf(sell, buyMin, buyMax) };
+    }
   }
   const years = [];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) years.push(y);
@@ -491,7 +501,7 @@ function render() {
   let h = `
   <div class="top">
     <div class="title">حاسبة رولكس</div>
-    <button class="btn-o" ${has ? "" : "disabled"} onclick="openSheet('table')">الجدول</button>
+    <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">الجدول</button>
   </div>
 
   <div class="strip">
@@ -505,27 +515,32 @@ function render() {
     ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ رفرنس</button>` : ""}
   </div>
 
-  <div class="ystrip">
+  <div style="display:flex;gap:8px;margin:2px 0 10px">
+    <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">جديد</button>
+    <button class="f ${!isNew ? "on" : ""}" style="flex:1" onclick="setMode('used')">مستخدم</button>
+  </div>
+
+  ${!isNew ? `<div class="ystrip">
     ${years.map((y) => `<button class="yb ${y === year ? "on" : ""}" onclick="setYear(${y})">
       <span class="dot" style="background:${eraDot(y)}"></span>${y}</button>`).join("")}
-  </div>
+  </div>` : ""}
 
   <div class="card">
     <div class="head-r">
       <span>${esc(fam.name)} ${esc(it.name)}${it.ref ? ` • <span class="num ltr" style="display:inline-block">${esc(it.ref)}</span>` : ""}</span>
-      <span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(p) : "—"}</span>
+      ${!isNew ? `<span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(p) : "—"}</span>` : ""}
     </div>
-    <div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>
+    ${!isNew ? `<div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>` : ""}
     ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
-    <div class="big num" onclick="${has ? "openSheet('full')" : ""}">${R ? fmt(R.sell) : "—"}</div>
+    <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(R.sell) : "—"}</div>
     <div class="sub num">د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}</div>
     ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(R.alt)}</button>` : ""}
-    ${R ? `<div class="buy"><span>تشتري مستخدم بـ (${it.mMin === it.mMax ? it.mMin : it.mMin + "–" + it.mMax}%)</span>
+    ${R ? `<div class="buy"><span>تشتري ${isNew ? "جديد" : "مستخدم"} بـ (${buyPctTxt}%)</span>
       <span class="num">${R.buy.lo === R.buy.hi ? fmt(R.buy.lo) : fmt(R.buy.lo) + " – " + fmt(R.buy.hi)}</span></div>` : ""}
     ${R ? `<div class="row2">
       <button class="btn-p" onclick="copyOne()">نسخ</button>
-      <button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء" : "التفاصيل"}</button></div>` : ""}
-    ${R && details ? `<div style="margin-top:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
+      ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء" : "التفاصيل"}</button>` : ""}</div>` : ""}
+    ${R && details && !isNew ? `<div style="margin-top:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
       ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
       <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
     </div>` : ""}
@@ -543,7 +558,7 @@ function render() {
     <button class="link" style="flex:1;margin-top:0" onclick="logout()">خروج (${esc(auth.user)})</button>
   </div>`;
 
-  if (sheet === "table" && has) h += sheetTable(p, it, fam, years);
+  if (sheet === "table" && has && !isNew) h += sheetTable(p, it, fam, years);
   if (sheet === "rules") h += sheetRules(fam, it);
   if (sheet === "sessions") h += sheetSessions();
   if (sheet === "ask") h += sheetAsk();
@@ -584,7 +599,7 @@ function sheetTable(p, it, fam, years) {
   return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
     <div class="sh-top"><b>${esc(it.name)} — الجديد ${fmt(p)}</b><button class="x" onclick="closeSheet()">✕</button></div>
     <div class="sh-body">
-      ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it);
+      ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it.mMin, it.mMax);
         return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
           <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
           <span class="num" style="font-weight:700;color:var(--grn)">${fmt(r.main)}</span>
@@ -698,6 +713,7 @@ let askType = "fam", askVal = "", askRef = "";
 // ===== التنقل =====
 function setYear(y) { year = y; altPick = null; render(); }
 function useAlt(v) { altPick = v; render(); }
+function setMode(m) { mode = m; altPick = null; details = false; render(); }
 function pickFam(f) {
   famId = f; const ff = curFam(); itemId = ff.items[0].id;
   price = cfg.prices[itemId] || ""; altPick = null; cfg.lastItem = itemId; save(cfg); render();
@@ -857,9 +873,15 @@ function impCfg() {
 }
 function copyOne() {
   const it = curItem(), fam = curFam(), p = parseFloat(price);
+  if (mode === "new") {
+    const b = buyOf(p, it.nMin, it.nMax);
+    copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\nالبيع ${fmt(p)} د.ك (${fmt(riyal(p))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+      .then(() => toast("تم النسخ ✓"));
+    return;
+  }
   const c0 = calc(year, p, it);
   const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
-  const b = buyOf(sell, it);
+  const b = buyOf(sell, it.mMin, it.mMax);
   copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\nالبيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
     .then(() => toast("تم النسخ ✓"));
 }
