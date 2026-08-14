@@ -380,7 +380,8 @@ async function pollRemote(silent) {
 // ===== الحالة =====
 let cfg, famId, itemId, year = CURRENT_YEAR, price = "", altPick = null,
     sheet = null, q = "", details = false, draft = null, dirty = false, saveState = null, ioText = "", ioMsg = "",
-    mode = "used"; // "used" = مارجن مستخدم (الحساب الأصلي بعمر/قرنتي) | "new" = مارجن جديد مباشرة على السعر المدخل
+    mode = "used", // "used" = مارجن مستخدم (الحساب الأصلي بعمر/قرنتي) | "new" = مارجن جديد مباشرة على السعر المدخل
+    inputCur = "kwd"; // عملة الإدخال: "kwd" = دينار (الافتراضي) | "qar" = ريال. كل الحساب داخليًا بالدينار، الريال يُحوّل عند الإدخال
 const normBase = { usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50, note: "", ref: "" };
 const normItem = (i) => ({ ...normBase, ...i });
 
@@ -425,6 +426,10 @@ const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; retur
 const fmt = (n) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
 const cardOf = (y) => y >= 2021 ? "قرنتي جديد" : y >= 2016 ? "قرنتي أبيض" : "قرنتي زيتي";
 const riyal = (k) => Math.round(k / (cfg.rate || 84)) * 1000;
+// عكس riyal(): يحوّل مبلغ ريال مُدخل إلى دينار للحساب الداخلي
+const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
+// القيمة المدخلة محوّلة دائمًا للدينار (حسب عملة الإدخال المختارة)
+const enteredKwd = () => { const v = parseFloat(price); return isNaN(v) ? NaN : (inputCur === "qar" ? qarToKwd(v) : v); };
 
 function round5090(v) {
   const b0 = Math.floor(v / 100) * 100, c = [];
@@ -479,7 +484,7 @@ function render() {
   const shScroll = shBodyOld ? shBodyOld.scrollTop : null;
 
   const fam = curFam(), it = curItem();
-  const p = parseFloat(price), has = !isNaN(p) && p > 0;
+  const p = enteredKwd(), has = !isNaN(p) && p > 0;
   const isNew = mode === "new";
   const buyMin = isNew ? it.nMin : it.mMin, buyMax = isNew ? it.nMax : it.mMax;
   const buyPctTxt = buyMin === buyMax ? String(buyMin) : `${buyMin}–${buyMax}`;
@@ -544,7 +549,12 @@ function render() {
       ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
       <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
     </div>` : ""}
-    ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد بالأرقام تحت</div>`}
+    ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد ${inputCur === "qar" ? "بالريال" : "بالدينار"} بالأرقام تحت</div>`}
+  </div>
+
+  <div style="display:flex;gap:8px;margin:8px 0 2px">
+    <button class="f ${inputCur === "kwd" ? "on" : ""}" style="flex:1" onclick="setInputCur('kwd')">أكتب بالدينار</button>
+    <button class="f ${inputCur === "qar" ? "on" : ""}" style="flex:1" onclick="setInputCur('qar')">أكتب بالريال</button>
   </div>
 
   <div class="pad"><div class="g">
@@ -714,6 +724,7 @@ let askType = "fam", askVal = "", askRef = "";
 function setYear(y) { year = y; altPick = null; render(); }
 function useAlt(v) { altPick = v; render(); }
 function setMode(m) { mode = m; altPick = null; details = false; render(); }
+function setInputCur(c) { inputCur = c; altPick = null; render(); }
 function pickFam(f) {
   famId = f; const ff = curFam(); itemId = ff.items[0].id;
   price = cfg.prices[itemId] || ""; altPick = null; cfg.lastItem = itemId; save(cfg); render();
@@ -872,7 +883,7 @@ function impCfg() {
   } catch (e) { toast("النص غير صالح"); }
 }
 function copyOne() {
-  const it = curItem(), fam = curFam(), p = parseFloat(price);
+  const it = curItem(), fam = curFam(), p = enteredKwd();
   if (mode === "new") {
     const b = buyOf(p, it.nMin, it.nMax);
     copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\nالبيع ${fmt(p)} د.ك (${fmt(riyal(p))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
@@ -886,7 +897,7 @@ function copyOne() {
     .then(() => toast("تم النسخ ✓"));
 }
 function copyTable() {
-  const it = curItem(), fam = curFam(), p = parseFloat(price);
+  const it = curItem(), fam = curFam(), p = enteredKwd();
   const rows = [`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(p)} د.ك`];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(calc(y, p, it).main)} د.ك`);
   copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
