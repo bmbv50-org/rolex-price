@@ -533,7 +533,7 @@ function render() {
   <div class="card">
     <div class="head-r">
       <span>${esc(fam.name)} ${esc(it.name)}${it.ref ? ` • <span class="num ltr" style="display:inline-block">${esc(it.ref)}</span>` : ""}</span>
-      ${!isNew ? `<span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(p) : "—"}</span>` : ""}
+      ${!isNew ? `<span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(parseFloat(price)) + (inputCur === "qar" ? " ريال" : " د.ك") : "—"}</span>` : ""}
     </div>
     ${!isNew ? `<div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>` : ""}
     ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
@@ -542,13 +542,6 @@ function render() {
     ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(R.alt)}</button>` : ""}
     ${R ? `<div class="buy"><span>تشتري ${isNew ? "جديد" : "مستخدم"} بـ (${buyPctTxt}%)</span>
       <span class="num">${R.buy.lo === R.buy.hi ? fmt(R.buy.lo) : fmt(R.buy.lo) + " – " + fmt(R.buy.hi)}</span></div>` : ""}
-    ${R ? `<div class="row2">
-      <button class="btn-p" onclick="copyOne()">نسخ</button>
-      ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء" : "التفاصيل"}</button>` : ""}</div>` : ""}
-    ${R && details && !isNew ? `<div style="margin-top:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
-      ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
-      <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
-    </div>` : ""}
     ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد ${inputCur === "qar" ? "بالريال" : "بالدينار"} بالأرقام تحت</div>`}
   </div>
 
@@ -562,7 +555,16 @@ function render() {
       .map(([k, l]) => `<button class="k ${l === null ? "plain" : ""}" onclick="key('${k}')"><b>${k}</b>${l ? `<i>${l}</i>` : ""}</button>`).join("")}
   </div></div>
   <button class="link" onclick="key('C')">مسح السعر</button>
-  <div style="display:flex;gap:8px;margin-top:2px">
+
+  ${R ? `<div class="row2" style="margin-top:6px">
+    <button class="btn-p" onclick="copyOne()">نسخ</button>
+    ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء التفاصيل" : "التفاصيل"}</button>` : ""}</div>` : ""}
+  ${R && details && !isNew ? `<div style="margin-top:8px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
+    ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
+    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
+  </div>` : ""}
+
+  <div style="display:flex;gap:8px;margin-top:6px">
     ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">الإعدادات ⚙</button>` : ""}
     ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">الجلسات 👥</button>` : ""}
     <button class="link" style="flex:1;margin-top:0" onclick="logout()">خروج (${esc(auth.user)})</button>
