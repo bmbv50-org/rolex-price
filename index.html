@@ -380,6 +380,18 @@ function applyRemoteFams(remoteData) {
   if (!remoteData || !remoteData.fams || !remoteData.fams.length) return;
   cfg.fams = remoteData.fams.map((f) => ({ ...f, items: (f.items || []).map(normItem) }));
   cfg.deleted = remoteData.deleted || [];
+  // المزامنة كانت تستبدل القائمة كل ٥ ثوانٍ فتمسح أي عائلة افتراضية
+  // جديدة لم تُحفظ بعد في Supabase — وهذا ما أخفى عائلات كارتير.
+  // ندمج الافتراضيات غير المحذوفة بنفس منطق boot.
+  for (const df of FAMS) {
+    if (cfg.deleted.includes(df.id)) continue;
+    const uf = cfg.fams.find((x) => x.id === df.id);
+    if (!uf) { cfg.fams.push(JSON.parse(JSON.stringify(df))); continue; }
+    for (const di of df.items) {
+      if (cfg.deleted.includes(di.id)) continue;
+      if (!uf.items.find((x) => x.id === di.id)) uf.items.push(normItem(di));
+    }
+  }
   save(cfg);
 }
 async function pollRemote(silent) {
@@ -389,7 +401,7 @@ async function pollRemote(silent) {
     const changed = lastRemoteStamp !== null;
     lastRemoteStamp = row.updated_at;
     applyRemoteFams(row.data);
-    let f = cfg.fams.find((x) => x.id === famId) || cfg.fams[0];
+    let f = cfg.fams.find((x) => x.id === famId) || famsOf(brand)[0] || cfg.fams[0];
     famId = f.id;
     if (!f.items.find((x) => x.id === itemId)) itemId = f.items[0].id;
     if (changed && !silent) toast("القواعد تحدثت من جهاز ثاني ✓");
