@@ -121,6 +121,8 @@ input:focus,textarea:focus{border-color:var(--grn)}
 .strip::-webkit-scrollbar{display:none}
 .f{flex:0 0 auto;padding:9px 15px;border-radius:11px;font-size:14px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--txt)}
 .f.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.bstrip{margin-bottom:6px}
+.f.b{font-size:15px;padding:8px 20px}
 .f.add{border-style:dashed;color:var(--grn);font-weight:600}
 .igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .i{padding:9px 5px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
@@ -242,6 +244,24 @@ const FAMS = [
     it("op28O", "28 — قديم", "176200", ...LDY),
   ]},
 ];
+
+// ===== كارتير — الهيكل فقط، النِسَب يعبّيها أبو بداح من الإعدادات =====
+// الأصفار مقصودة: قيمة مخترَعة أخطر من خانة فارغة، ونسبة كارتييه تختلف
+// عن رولكس (متوسطنا الحقيقي من أودو ١٢.٤٪ ومداه ٥.٨–٢٥.٧٪).
+const C0 = [0, 0, 0, 0, 0];
+const CARTIER = [
+  { id: "ct_santos",  name: "سانتوس",     brand: "كارتير", items: [it("ct_santos_1",  "سانتوس", "", ...C0)] },
+  { id: "ct_tank",    name: "تانك",       brand: "كارتير", items: [it("ct_tank_1",    "تانك", "", ...C0)] },
+  { id: "ct_ballon",  name: "بالون بلو",  brand: "كارتير", items: [it("ct_ballon_1",  "بالون بلو", "", ...C0)] },
+  { id: "ct_panth",   name: "بانتير",     brand: "كارتير", items: [it("ct_panth_1",   "بانتير", "", ...C0)] },
+  { id: "ct_pasha",   name: "باشا",       brand: "كارتير", items: [it("ct_pasha_1",   "باشا", "", ...C0)] },
+  { id: "ct_clash",   name: "كلاش",       brand: "كارتير", items: [it("ct_clash_1",   "كلاش", "", ...C0)] },
+  { id: "ct_baign",   name: "بينوار",     brand: "كارتير", items: [it("ct_baign_1",   "بينوار", "", ...C0)] },
+  { id: "ct_ronde",   name: "روند",       brand: "كارتير", items: [it("ct_ronde_1",   "روند", "", ...C0)] },
+].map((f) => ({ ...f, items: f.items.map((x) => ({ ...x, note: "تحتاج نِسَب" })) }));
+
+FAMS.push(...CARTIER);
+
 // ===== التخزين =====
 const KEY = "rolexPricer.v1";
 const save = (o) => { try { localStorage.setItem(KEY, JSON.stringify(o)); return true; } catch (e) { return false; } };
@@ -418,7 +438,19 @@ function boot() {
   famId = f.id; itemId = i.id; price = cfg.prices[i.id] || "";
 }
 
-const curFam = () => cfg.fams.find((f) => f.id === famId) || cfg.fams[0];
+// البراند: العائلات القديمة بلا حقل brand تُعامل رولكس، فبيانات
+// Supabase الحالية تبقى كما هي ولا يُكسر شيء.
+const BRANDS = ["رولكس", "كارتير"];
+const brandOf = (f) => f.brand || "رولكس";
+let brand = localStorage.getItem("brand") || "رولكس";
+const famsOf = (b) => cfg.fams.filter((f) => brandOf(f) === b);
+function pickBrand(b) {
+  brand = b; localStorage.setItem("brand", b);
+  const list = famsOf(b);
+  if (list.length) { famId = list[0].id; itemId = (list[0].items[0] || {}).id; }
+  render();
+}
+const curFam = () => cfg.fams.find((f) => f.id === famId) || famsOf(brand)[0] || cfg.fams[0];
 const curItem = () => { const f = curFam(); return f.items.find((i) => i.id === itemId) || f.items[0]; };
 const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; return save(cfg); };
 
@@ -509,8 +541,12 @@ function render() {
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">الجدول</button>
   </div>
 
+  <div class="strip bstrip">
+    ${BRANDS.map((b) => `<button class="f b ${b === brand ? "on" : ""}" onclick="pickBrand('${b}')">${esc(b)}</button>`).join("")}
+  </div>
+
   <div class="strip">
-    ${cfg.fams.map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
+    ${famsOf(brand).map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
     ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ عائلة</button>` : ""}
   </div>
 
@@ -746,7 +782,7 @@ function doAdd() {
   if (!nm) { toast("اكتب الاسم أولاً"); return; }
   if (askType === "fam") {
     const id = uid();
-    cfg.fams.push({ id, name: nm, items: [{
+    cfg.fams.push({ id, name: nm, brand, items: [{
       id: uid(), name: "رفرنس 1", ref: "", note: "",
       usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50,
     }]});
@@ -888,19 +924,19 @@ function copyOne() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
   if (mode === "new") {
     const b = buyOf(p, it.nMin, it.nMax);
-    copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\nالبيع ${fmt(p)} د.ك (${fmt(riyal(p))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\nالبيع ${fmt(p)} د.ك (${fmt(riyal(p))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
       .then(() => toast("تم النسخ ✓"));
     return;
   }
   const c0 = calc(year, p, it);
   const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
   const b = buyOf(sell, it.mMin, it.mMax);
-  copyTxt(`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\nالبيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+  copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\nالبيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
     .then(() => toast("تم النسخ ✓"));
 }
 function copyTable() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
-  const rows = [`رولكس ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(p)} د.ك`];
+  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(p)} د.ك`];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(calc(y, p, it).main)} د.ك`);
   copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
 }
