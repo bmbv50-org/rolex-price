@@ -469,7 +469,7 @@ const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; retur
 // ===== الحساب =====
 const fmt = (n) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
 const cardOf = (y) => y >= 2021 ? "قرنتي جديد" : y >= 2016 ? "قرنتي أبيض" : "قرنتي زيتي";
-const riyal = (k) => Math.round(k / (cfg.rate || 84)) * 1000;
+const riyal = (k) => roundTen(k / (cfg.rate || 84) * 1000);
 // عكس riyal(): يحوّل مبلغ ريال مُدخل إلى دينار للحساب الداخلي
 const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
 // الحساب الداخلي كله بالدينار. هذي الدوال تعرضه بعملة الإدخال المختارة،
@@ -478,29 +478,26 @@ const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
 const disp = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal(k) : k);
 // النطاقات تحتاج تقريبًا أدق: riyal() يقرّب لأقرب ألف، فنطاق شراء
 // ١,٣٩٠–١,٤٥٠ د.ك ينهار إلى ١٧,٠٠٠–١٧,٠٠٠. التقريب لأقرب مئة يُبقيه نطاقًا.
-// تقريبان مقصودان: السعر المعروض للعميل لأقرب ألف (شكل السومة المعتاد)،
-// وكل ما يُقارَن — النطاقات وجدول السنوات — لأقرب مئة وإلا انهارت الفروق.
-const riyal100 = (k) => Math.round(k / (cfg.rate || 84) * 10) * 100;
-const dispR = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal100(k) : k);
+// تقريب واحد لكل شيء الآن، فـ dispR صار نفس disp. أُبقي الاسم لأن
+// مواضع العرض المقارِنة (النطاقات وجدول السنوات) تناديه.
+const dispR = disp;
 const unit = () => inputCur === "qar" ? (cfg.curr2 || "ريال") : "د.ك";
 const copyLines = (sell, b) => inputCur === "qar"
-  ? `البيع ${fmt(riyal(sell))} ${cfg.curr2}\nالشراء ${fmt(riyal100(b.lo))}–${fmt(riyal100(b.hi))} ${cfg.curr2}`
+  ? `البيع ${fmt(riyal(sell))} ${cfg.curr2}\nالشراء ${fmt(riyal(b.lo))}–${fmt(riyal(b.hi))} ${cfg.curr2}`
   : `البيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`;
 // القيمة المدخلة محوّلة دائمًا للدينار (حسب عملة الإدخال المختارة)
 const enteredKwd = () => { const v = parseFloat(price); return isNaN(v) ? NaN : (inputCur === "qar" ? qarToKwd(v) : v); };
 
-function round5090(v) {
-  const b0 = Math.floor(v / 100) * 100, c = [];
-  for (const b of [b0 - 100, b0, b0 + 100]) c.push(b + 50, b + 90);
-  let d = null, u = null;
-  for (const x of c) { if (x <= v && (d === null || x > d)) d = x; if (x >= v && (u === null || x < u)) u = x; }
-  if (d === null) return { main: u, alt: null };
-  if (u === null) return { main: d, alt: null };
-  if (d === u) return { main: d, alt: null };
-  const m = (v - d) <= (u - v) ? d : u;
-  return { main: m, alt: m === d ? u : d };
-}
-const r90 = (v) => round5090(Math.max(v, 0)).main;
+// قاعدة التقريب المعتمدة — أقرب ١٠، للدينار والريال معًا (قرار المالك
+// ٢٠٢٦-٠٩-١٦): ٤,٣٧٢ ← ٤,٣٧٠ و٤,٣٧٧ ← ٤,٣٨٠، والريال مثله ٦٢,١٠٨ ← ٦٢,١١٠.
+//
+// سبقتها قاعدة «٥٠ أو ٩٠» التي تسحب السعر لرقم ينتهي بـ٥٠ أو ٩٠، وكانت
+// تُنتج مرشّحَين يحيطان بالرقم الخام — ومن المرشّح الثاني يُبنى زر «أو».
+// بأقرب ١٠ لا يوجد مرشّح ثانٍ، فـ alt = null والزر يختفي من نفسه.
+// نتيجة مقصودة للقاعدة الجديدة لا سهو.
+const roundTen = (v) => Math.round(v / 10) * 10;
+function roundPrice(v) { return { main: roundTen(Math.max(v, 0)), alt: null }; }
+const r90 = (v) => roundTen(Math.max(v, 0));
 
 function calc(y, p, it) {
   const lines = []; let run = p;
@@ -518,7 +515,7 @@ function calc(y, p, it) {
     const s2 = seg[k], tot = s2.c * s2.per; run -= tot;
     lines.push({ t: k === "gw" ? s2.lab : `${s2.lab}: ${s2.c} × ${s2.per}`, v: tot });
   }
-  const exact = Math.max(run, 0), r = round5090(exact);
+  const exact = Math.max(run, 0), r = roundPrice(exact);
   return { lines, exact, main: r.main, alt: r.alt };
 }
 const buyOf = (sell, min, max) => {
@@ -981,7 +978,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-09-16-3";
+const BUILD = "2026-09-16-4";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
