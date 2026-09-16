@@ -973,4 +973,25 @@ pollRemote(true);
 setInterval(() => pollRemote(false), 5000);
 if (auth) startHeartbeat();
 window.addEventListener("beforeunload", stopHeartbeat);
+
+// ── تحديث ذاتي ──────────────────────────────────────────────────────────
+// المالك حافظ الحاسبة كأيقونة على شاشة جواله، وهناك لا يوجد «تحديث قسري».
+// جيت‑هَب يخزّن الصفحة ١٠ دقائق، فيبقى يرى نسخة قديمة ويظن أن التعديل ما
+// وصل — صار فعلًا ٢٠٢٦-٠٩-١٦. فنسأل الخادم عن رقم النسخة كلما رجع للتطبيق،
+// وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
+// بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
+// الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
+const BUILD = "2026-09-16-3";
+let lastBuildCheck = 0;
+async function checkBuild() {
+  if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
+  lastBuildCheck = Date.now();
+  try {
+    const txt = await fetch(location.pathname + "?b=" + Date.now(), { cache: "no-store" }).then((r) => r.text());
+    const m = txt.match(/const BUILD = "([^"]+)"/);
+    if (m && m[1] !== BUILD) location.reload();
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBuild(); });
+window.addEventListener("focus", checkBuild);
 </script></body></html>
