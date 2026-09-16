@@ -478,6 +478,8 @@ const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
 const disp = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal(k) : k);
 // النطاقات تحتاج تقريبًا أدق: riyal() يقرّب لأقرب ألف، فنطاق شراء
 // ١,٣٩٠–١,٤٥٠ د.ك ينهار إلى ١٧,٠٠٠–١٧,٠٠٠. التقريب لأقرب مئة يُبقيه نطاقًا.
+// تقريبان مقصودان: السعر المعروض للعميل لأقرب ألف (شكل السومة المعتاد)،
+// وكل ما يُقارَن — النطاقات وجدول السنوات — لأقرب مئة وإلا انهارت الفروق.
 const riyal100 = (k) => Math.round(k / (cfg.rate || 84) * 10) * 100;
 const dispR = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal100(k) : k);
 const unit = () => inputCur === "qar" ? (cfg.curr2 || "ريال") : "د.ك";
@@ -599,7 +601,7 @@ function render() {
     ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
     <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(disp(R.sell)) : "—"}</div>
     <div class="sub num">${inputCur === "qar" ? esc(cfg.curr2) : `د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}`}</div>
-    ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(disp(R.alt))}</button>` : ""}
+    ${R && R.alt !== null && disp(R.alt) !== disp(R.sell) ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(disp(R.alt))}</button>` : ""}
     ${R ? `<div class="buy"><span>تشتري ${isNew ? "جديد" : "مستخدم"} بـ (${buyPctTxt}%)</span>
       <span class="num">${dispR(R.buy.lo) === dispR(R.buy.hi) ? fmt(dispR(R.buy.lo)) : fmt(dispR(R.buy.lo)) + " – " + fmt(dispR(R.buy.hi))} ${unit()}</span></div>` : ""}
     ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد ${inputCur === "qar" ? "بالريال" : "بالدينار"} بالأرقام تحت</div>`}
@@ -674,7 +676,7 @@ function sheetTable(p, it, fam, years) {
       ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it.mMin, it.mMax);
         return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
           <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
-          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(disp(r.main))}</span>
+          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(dispR(r.main))}</span>
           <span class="num" style="font-size:12px;color:var(--mut)">شراء ${fmt(dispR(b.lo))}–${fmt(dispR(b.hi))}</span></button>`;
       }).join("")}
     </div>
@@ -961,7 +963,7 @@ function copyOne() {
 function copyTable() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
   const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(disp(p))} ${unit()}`];
-  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(disp(calc(y, p, it).main))} ${unit()}`);
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(dispR(calc(y, p, it).main))} ${unit()}`);
   copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
 }
 
