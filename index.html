@@ -472,6 +472,18 @@ const cardOf = (y) => y >= 2021 ? "قرنتي جديد" : y >= 2016 ? "قرنت�
 const riyal = (k) => Math.round(k / (cfg.rate || 84)) * 1000;
 // عكس riyal(): يحوّل مبلغ ريال مُدخل إلى دينار للحساب الداخلي
 const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
+// الحساب الداخلي كله بالدينار. هذي الدوال تعرضه بعملة الإدخال المختارة،
+// فلمّا يختار المستخدم الريال لا يظهر دينار في أي مكان — طلب المالك
+// ٢٠٢٦-٠٩-١٦: «مختار الريال، مفروض يطلع ريال بدون دينار ابدا».
+const disp = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal(k) : k);
+// النطاقات تحتاج تقريبًا أدق: riyal() يقرّب لأقرب ألف، فنطاق شراء
+// ١,٣٩٠–١,٤٥٠ د.ك ينهار إلى ١٧,٠٠٠–١٧,٠٠٠. التقريب لأقرب مئة يُبقيه نطاقًا.
+const riyal100 = (k) => Math.round(k / (cfg.rate || 84) * 10) * 100;
+const dispR = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal100(k) : k);
+const unit = () => inputCur === "qar" ? (cfg.curr2 || "ريال") : "د.ك";
+const copyLines = (sell, b) => inputCur === "qar"
+  ? `البيع ${fmt(riyal(sell))} ${cfg.curr2}\nالشراء ${fmt(riyal100(b.lo))}–${fmt(riyal100(b.hi))} ${cfg.curr2}`
+  : `البيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`;
 // القيمة المدخلة محوّلة دائمًا للدينار (حسب عملة الإدخال المختارة)
 const enteredKwd = () => { const v = parseFloat(price); return isNaN(v) ? NaN : (inputCur === "qar" ? qarToKwd(v) : v); };
 
@@ -585,11 +597,11 @@ function render() {
     </div>
     ${!isNew ? `<div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>` : ""}
     ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
-    <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(R.sell) : "—"}</div>
-    <div class="sub num">د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}</div>
-    ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(R.alt)}</button>` : ""}
+    <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(disp(R.sell)) : "—"}</div>
+    <div class="sub num">${inputCur === "qar" ? esc(cfg.curr2) : `د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}`}</div>
+    ${R && R.alt !== null ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(disp(R.alt))}</button>` : ""}
     ${R ? `<div class="buy"><span>تشتري ${isNew ? "جديد" : "مستخدم"} بـ (${buyPctTxt}%)</span>
-      <span class="num">${R.buy.lo === R.buy.hi ? fmt(R.buy.lo) : fmt(R.buy.lo) + " – " + fmt(R.buy.hi)}</span></div>` : ""}
+      <span class="num">${dispR(R.buy.lo) === dispR(R.buy.hi) ? fmt(dispR(R.buy.lo)) : fmt(dispR(R.buy.lo)) + " – " + fmt(dispR(R.buy.hi))} ${unit()}</span></div>` : ""}
     ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد ${inputCur === "qar" ? "بالريال" : "بالدينار"} بالأرقام تحت</div>`}
   </div>
 
@@ -609,7 +621,7 @@ function render() {
     ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء التفاصيل" : "التفاصيل"}</button>` : ""}</div>` : ""}
   ${R && details && !isNew ? `<div style="margin-top:8px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
     ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
-    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(R.exact)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(disp(R.exact))}</span></div>
   </div>` : ""}
 
   <div style="display:flex;gap:8px;margin-top:6px">
@@ -625,8 +637,8 @@ function render() {
   if (sheet === "full" && R) h += `<div class="full" onclick="closeSheet()">
       <div class="t1">${esc(fam.name)} — ${esc(it.name)}</div>
       <div class="t2 num">${year} • ${cardOf(year)}</div>
-      <div class="n">${fmt(R.sell)}</div>
-      <div class="t3 num">د.ك • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}</div></div>`;
+      <div class="n">${fmt(disp(R.sell))}</div>
+      <div class="t3 num">${inputCur === "qar" ? esc(cfg.curr2) : `د.ك • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}`}</div></div>`;
 
   $("app").innerHTML = h;
   if (sheet === "ask") { const e = $("askin"); if (e) { e.value = askVal; e.focus(); } }
@@ -657,13 +669,13 @@ function sheetAsk() {
 
 function sheetTable(p, it, fam, years) {
   return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sh-top"><b>${esc(it.name)} — الجديد ${fmt(p)}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-top"><b>${esc(it.name)} — الجديد ${fmt(disp(p))} ${unit()}</b><button class="x" onclick="closeSheet()">✕</button></div>
     <div class="sh-body">
       ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it.mMin, it.mMax);
         return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
           <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
-          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(r.main)}</span>
-          <span class="num" style="font-size:12px;color:var(--mut)">شراء ${fmt(b.lo)}–${fmt(b.hi)}</span></button>`;
+          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(disp(r.main))}</span>
+          <span class="num" style="font-size:12px;color:var(--mut)">شراء ${fmt(dispR(b.lo))}–${fmt(dispR(b.hi))}</span></button>`;
       }).join("")}
     </div>
     <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">نسخ الجدول</button></div>
@@ -936,20 +948,20 @@ function copyOne() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
   if (mode === "new") {
     const b = buyOf(p, it.nMin, it.nMax);
-    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\nالبيع ${fmt(p)} د.ك (${fmt(riyal(p))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\n${copyLines(p, b)}`)
       .then(() => toast("تم النسخ ✓"));
     return;
   }
   const c0 = calc(year, p, it);
   const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
   const b = buyOf(sell, it.mMin, it.mMax);
-  copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\nالبيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`)
+  copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\n${copyLines(sell, b)}`)
     .then(() => toast("تم النسخ ✓"));
 }
 function copyTable() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
-  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(p)} د.ك`];
-  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(calc(y, p, it).main)} د.ك`);
+  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(disp(p))} ${unit()}`];
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(disp(calc(y, p, it).main))} ${unit()}`);
   copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
 }
 
