@@ -163,12 +163,12 @@ const FAMS = [
   { id: "dj", name: "Datejust", items: [
     it("dj41sN", "Steel Bezel 41 — New", "126300", ...S),
     it("dj41sO", "Steel Bezel 41 — Old", "116300", ...S),
-    it("dj41gN", "Fluted Bezel 41 — New", "126334", ...S),
-    it("dj41gO", "Fluted Bezel 41 — Old", "116334", ...S),
+    it("dj41gN", "WG 41 — New", "126334", ...S),
+    it("dj41gO", "WG 41 — Old", "116334", ...S),
     it("dj36sN", "Steel Bezel 36 — New", "126200", ...D36),
     it("dj36sO", "Steel Bezel 36 — Old", "116200", ...D36),
-    it("dj36gN", "Fluted Bezel 36 — New", "126234", ...D36),
-    it("dj36gO", "Fluted Bezel 36 — Old", "116234", ...D36),
+    it("dj36gN", "WG 36 — New", "126234", ...D36),
+    it("dj36gO", "WG 36 — Old", "116234", ...D36),
     it("djLady", "Datejust Lady", "", ...LDY),
   ]},
   { id: "ld", name: "Land-Dweller", items: [
@@ -662,7 +662,7 @@ function sheetAsk() {
   const t = askType === "fam" ? "New family name" : "New reference name";
   return `<div class="mask c" onclick="closeSheet()"><div class="pr" onclick="event.stopPropagation()">
     <div style="font-weight:700;color:var(--grn);margin-bottom:10px">${t}</div>
-    <input id="askin" placeholder="${askType === "fam" ? "e.g. Cellini" : "e.g. Fluted Bezel 41 — New"}" oninput="askVal=this.value">
+    <input id="askin" placeholder="${askType === "fam" ? "e.g. Cellini" : "e.g. WG 41 — New"}" oninput="askVal=this.value">
     ${askType === "item" ? `<input id="askref" class="ltr" style="margin-top:8px" placeholder="Reference (optional)" oninput="askRef=this.value" value="${esc(askRef)}">` : ""}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn-s" onclick="closeSheet()">Cancel</button>
@@ -982,7 +982,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-10-21-en";
+const BUILD = "2026-10-21-en2";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
