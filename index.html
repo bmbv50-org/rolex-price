@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#0B5C3F">
-<title>حاسبة رولكس</title>
+<title>Rolex Calculator</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B5C3F'/><text y='68' x='50' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'>R</text></svg>">
 <style>
 :root{
@@ -38,10 +38,10 @@ input:focus,textarea:focus{border-color:var(--grn)}
 
 /* زر الساعة */
 .watch{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;
-  padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:right}
+  padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left}
 .watch .fam{font-size:11.5px;color:var(--mut);margin-bottom:2px}
 .watch .nm{font-size:17px;font-weight:700}
-.watch .rf{font-size:12px;color:var(--mut);direction:ltr;text-align:right}
+.watch .rf{font-size:12px;color:var(--mut);direction:ltr;text-align:left}
 .watch .go{color:var(--grn);font-size:13px;font-weight:700;flex-shrink:0}
 
 /* بطاقة النتيجة */
@@ -89,10 +89,10 @@ input:focus,textarea:focus{border-color:var(--grn)}
 /* القوائم */
 .grp{font-size:12.5px;font-weight:700;color:var(--grn);margin:14px 0 6px}
 .opt{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 13px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--card);width:100%;text-align:right;margin-bottom:5px}
+  border:1.5px solid var(--line);background:var(--card);width:100%;text-align:left;margin-bottom:5px}
 .opt.on{border-color:var(--grn);background:var(--grnbg)}
 .opt .n{font-size:14.5px;font-weight:600;display:block}
-.opt .r{font-size:11.5px;color:var(--mut);direction:ltr;display:block;text-align:right}
+.opt .r{font-size:11.5px;color:var(--mut);direction:ltr;display:block;text-align:left}
 .opt .p{font-size:12.5px;color:var(--grn);flex-shrink:0;font-variant-numeric:tabular-nums}
 
 /* الإعدادات */
@@ -160,88 +160,88 @@ const DAY = [7, 5, 5, 5, 5];        // دايتونا
 const SKY = [5, 7, 7, 7, 7];        // سكاي دويلر
 
 const FAMS = [
-  { id: "dj", name: "ديت جست", items: [
-    it("dj41sN", "طوق ستيل 41 — جديد", "126300", ...S),
-    it("dj41sO", "طوق ستيل 41 — قديم", "116300", ...S),
-    it("dj41gN", "طوق ذهب 41 — جديد", "126334", ...S),
-    it("dj41gO", "طوق ذهب 41 — قديم", "116334", ...S),
-    it("dj36sN", "طوق ستيل 36 — جديد", "126200", ...D36),
-    it("dj36sO", "طوق ستيل 36 — قديم", "116200", ...D36),
-    it("dj36gN", "طوق ذهب 36 — جديد", "126234", ...D36),
-    it("dj36gO", "طوق ذهب 36 — قديم", "116234", ...D36),
-    it("djLady", "ديت جست نسائي", "", ...LDY),
+  { id: "dj", name: "Datejust", items: [
+    it("dj41sN", "Steel Bezel 41 — New", "126300", ...S),
+    it("dj41sO", "Steel Bezel 41 — Old", "116300", ...S),
+    it("dj41gN", "Fluted Bezel 41 — New", "126334", ...S),
+    it("dj41gO", "Fluted Bezel 41 — Old", "116334", ...S),
+    it("dj36sN", "Steel Bezel 36 — New", "126200", ...D36),
+    it("dj36sO", "Steel Bezel 36 — Old", "116200", ...D36),
+    it("dj36gN", "Fluted Bezel 36 — New", "126234", ...D36),
+    it("dj36gO", "Fluted Bezel 36 — Old", "116234", ...D36),
+    it("djLady", "Datejust Lady", "", ...LDY),
   ]},
-  { id: "ld", name: "لاند دويلر", items: [
-    it("ld40", "أبيض 40", "127334", ...S),
-    it("ld36", "أبيض 36", "127234", ...D36),
+  { id: "ld", name: "Land-Dweller", items: [
+    it("ld40", "White 40", "127334", ...S),
+    it("ld36", "White 36", "127234", ...D36),
   ]},
   { id: "gmt", name: "GMT", items: [
-    it("pepsi", "بيبسي", "126710BLRO", ...S),
-    it("batman", "باتمان", "126710BLNR", ...S),
-    it("sprite", "سبرايت", "126720VTNR", ...S),
-    it("bruce", "بروس وين", "126710GRNR", 5, 8, 10, 8, 10),
+    it("pepsi", "Pepsi", "126710BLRO", ...S),
+    it("batman", "Batman", "126710BLNR", ...S),
+    it("sprite", "Sprite", "126720VTNR", ...S),
+    it("bruce", "Bruce Wayne", "126710GRNR", 5, 8, 10, 8, 10),
   ]},
-  { id: "day", name: "ديتونا", items: [
-    it("dayN", "رفرنس جديد", "126500LN", ...DAY),
-    it("dayO", "رفرنس قديم", "116500LN", ...DAY),
-    it("dayX", "الإصدار الأقدم", "116520", ...DAY),
+  { id: "day", name: "Daytona", items: [
+    it("dayN", "New Ref", "126500LN", ...DAY),
+    it("dayO", "Old Ref", "116500LN", ...DAY),
+    it("dayX", "Oldest Ref", "116520", ...DAY),
   ]},
-  { id: "sky", name: "سكاي دويلر", items: [
-    it("skyN", "رفرنس جديد", "336934", ...SKY),
-    it("skyO", "رفرنس قديم", "326934", ...SKY),
+  { id: "sky", name: "Sky-Dweller", items: [
+    it("skyN", "New Ref", "336934", ...SKY),
+    it("skyO", "Old Ref", "326934", ...SKY),
   ]},
-  { id: "sub", name: "سبمارينر", items: [
-    it("starbucks", "ستاربكس", "126610LV", ...S),
-    it("hulk", "هولك", "116610LV", ...S),
-    it("subDN", "أسود ديت — جديد", "126610LN", ...S),
-    it("subDO", "أسود ديت — قديم", "116610LN", ...S),
-    it("subND", "أسود نو ديت — جديد", "124060", ...S),
-    it("subNDO", "أسود نو ديت — قديم", "114060", ...S),
+  { id: "sub", name: "Submariner", items: [
+    it("starbucks", "Starbucks", "126610LV", ...S),
+    it("hulk", "Hulk", "116610LV", ...S),
+    it("subDN", "Black Date — New", "126610LN", ...S),
+    it("subDO", "Black Date — Old", "116610LN", ...S),
+    it("subND", "Black No Date — New", "124060", ...S),
+    it("subNDO", "Black No Date — Old", "114060", ...S),
   ]},
-  { id: "exp1", name: "اكسبلورر 1", items: [
-    it("exp1a", "سايز 40", "224270", ...S),
-    it("exp1b", "سايز 36", "124270", ...S),
+  { id: "exp1", name: "Explorer I", items: [
+    it("exp1a", "Size 40", "224270", ...S),
+    it("exp1b", "Size 36", "124270", ...S),
   ]},
-  { id: "exp2", name: "اكسبلورر 2", items: [
-    it("exp2N", "رفرنس جديد", "226570", ...S),
-    it("exp2O", "رفرنس قديم", "216570", ...S),
+  { id: "exp2", name: "Explorer II", items: [
+    it("exp2N", "New Ref", "226570", ...S),
+    it("exp2O", "Old Ref", "216570", ...S),
   ]},
-  { id: "air", name: "ايركنج", items: [
-    it("airN", "رفرنس جديد", "126900", ...S),
-    it("airO", "رفرنس قديم", "116900", ...S),
+  { id: "air", name: "Air-King", items: [
+    it("airN", "New Ref", "126900", ...S),
+    it("airO", "Old Ref", "116900", ...S),
   ]},
-  { id: "ym40", name: "يخت ماستر 40", items: [
-    it("ym40N", "رفرنس جديد", "126622", ...S),
-    it("ym40O", "رفرنس قديم", "116622", ...S),
-    it("ymBlue", "أزرق", "116680", ...S),
+  { id: "ym40", name: "Yacht-Master 40", items: [
+    it("ym40N", "New Ref", "126622", ...S),
+    it("ym40O", "Old Ref", "116622", ...S),
+    it("ymBlue", "Blue", "116680", ...S),
   ]},
-  { id: "ym36", name: "يخت ماستر 36", items: [
-    it("ym36", "الجديد والقديم", "268622", 7, 8, 10, 8, 10, "السايز الفعلي 35"),
+  { id: "ym36", name: "Yacht-Master 36", items: [
+    it("ym36", "New & Old", "268622", 7, 8, 10, 8, 10, "Actual size 35"),
   ]},
-  { id: "ymti", name: "يخت ماستر تيتانيوم", items: [
-    it("ymti", "تيتانيوم", "226627", ...S),
+  { id: "ymti", name: "Yacht-Master Titanium", items: [
+    it("ymti", "Titanium", "226627", ...S),
   ]},
-  { id: "sea", name: "سي دويلر", items: [
-    it("sea", "سي دويلر", "126600", ...S),
+  { id: "sea", name: "Sea-Dweller", items: [
+    it("sea", "Sea-Dweller", "126600", ...S),
   ]},
-  { id: "deep", name: "ديب سي", items: [
-    it("deep", "أزرق وأسود", "136660", ...S),
+  { id: "deep", name: "Deepsea", items: [
+    it("deep", "Blue & Black", "136660", ...S),
   ]},
-  { id: "opg", name: "بربجوال رمادي", items: [
-    it("opg41", "سايز 41", "134303", ...S),
-    it("opg36", "سايز 36", "126003", ...S),
+  { id: "opg", name: "Oyster Perpetual Grey", items: [
+    it("opg41", "Size 41", "134303", ...S),
+    it("opg36", "Size 36", "126003", ...S),
   ]},
-  { id: "op", name: "بربجوال ملونة", items: [
-    it("op41N", "41 — جديد", "134300", ...S),
-    it("op41O", "41 — قديم", "124300", ...S),
-    it("op36N", "36 — جديد", "126000", ...S),
-    it("op36O", "36 — قديم", "116000", ...S),
-    it("op34N", "34 — جديد", "124200", ...S),
-    it("op34O", "34 — قديم", "114200", ...S),
-    it("op31N", "31 — جديد", "277200", ...LDY),
-    it("op31O", "31 — قديم", "177200", ...LDY),
-    it("op28N", "28 — جديد", "276200", ...LDY),
-    it("op28O", "28 — قديم", "176200", ...LDY),
+  { id: "op", name: "Oyster Perpetual Colours", items: [
+    it("op41N", "41 — New", "134300", ...S),
+    it("op41O", "41 — Old", "124300", ...S),
+    it("op36N", "36 — New", "126000", ...S),
+    it("op36O", "36 — Old", "116000", ...S),
+    it("op34N", "34 — New", "124200", ...S),
+    it("op34O", "34 — Old", "114200", ...S),
+    it("op31N", "31 — New", "277200", ...LDY),
+    it("op31O", "31 — Old", "177200", ...LDY),
+    it("op28N", "28 — New", "276200", ...LDY),
+    it("op28O", "28 — Old", "176200", ...LDY),
   ]},
 ];
 
@@ -250,15 +250,15 @@ const FAMS = [
 // عن رولكس (متوسطنا الحقيقي من أودو ١٢.٤٪ ومداه ٥.٨–٢٥.٧٪).
 const C0 = [0, 0, 0, 0, 0];
 const CARTIER = [
-  { id: "ct_santos",  name: "سانتوس",     brand: "كارتير", items: [it("ct_santos_1",  "سانتوس", "", ...C0)] },
-  { id: "ct_tank",    name: "تانك",       brand: "كارتير", items: [it("ct_tank_1",    "تانك", "", ...C0)] },
-  { id: "ct_ballon",  name: "بالون بلو",  brand: "كارتير", items: [it("ct_ballon_1",  "بالون بلو", "", ...C0)] },
-  { id: "ct_panth",   name: "بانتير",     brand: "كارتير", items: [it("ct_panth_1",   "بانتير", "", ...C0)] },
-  { id: "ct_pasha",   name: "باشا",       brand: "كارتير", items: [it("ct_pasha_1",   "باشا", "", ...C0)] },
-  { id: "ct_clash",   name: "كلاش",       brand: "كارتير", items: [it("ct_clash_1",   "كلاش", "", ...C0)] },
-  { id: "ct_baign",   name: "بينوار",     brand: "كارتير", items: [it("ct_baign_1",   "بينوار", "", ...C0)] },
-  { id: "ct_ronde",   name: "روند",       brand: "كارتير", items: [it("ct_ronde_1",   "روند", "", ...C0)] },
-].map((f) => ({ ...f, items: f.items.map((x) => ({ ...x, note: "تحتاج نِسَب" })) }));
+  { id: "ct_santos",  name: "Santos",     brand: "Cartier", items: [it("ct_santos_1",  "Santos", "", ...C0)] },
+  { id: "ct_tank",    name: "Tank",       brand: "Cartier", items: [it("ct_tank_1",    "Tank", "", ...C0)] },
+  { id: "ct_ballon",  name: "Ballon Bleu",  brand: "Cartier", items: [it("ct_ballon_1",  "Ballon Bleu", "", ...C0)] },
+  { id: "ct_panth",   name: "Panthère",     brand: "Cartier", items: [it("ct_panth_1",   "Panthère", "", ...C0)] },
+  { id: "ct_pasha",   name: "Pasha",       brand: "Cartier", items: [it("ct_pasha_1",   "Pasha", "", ...C0)] },
+  { id: "ct_clash",   name: "Clash",       brand: "Cartier", items: [it("ct_clash_1",   "Clash", "", ...C0)] },
+  { id: "ct_baign",   name: "Baignoire",     brand: "Cartier", items: [it("ct_baign_1",   "Baignoire", "", ...C0)] },
+  { id: "ct_ronde",   name: "Ronde",       brand: "Cartier", items: [it("ct_ronde_1",   "Ronde", "", ...C0)] },
+].map((f) => ({ ...f, items: f.items.map((x) => ({ ...x, note: "Needs margins" })) }));
 
 FAMS.push(...CARTIER);
 
@@ -283,7 +283,7 @@ let auth = null, loginUser = "", loginPass = "", loginErr = "";
 function doLogin() {
   const u = (loginUser || "").trim();
   const acc = ACCOUNTS[u];
-  if (!acc || acc.pass !== loginPass) { loginErr = "بيانات الدخول غير صحيحة"; loginPass = ""; render(); return; }
+  if (!acc || acc.pass !== loginPass) { loginErr = "Wrong username or password"; loginPass = ""; render(); return; }
   auth = { user: u, role: acc.role }; saveAuth(auth);
   loginErr = ""; loginPass = ""; render();
   startHeartbeat();
@@ -291,15 +291,15 @@ function doLogin() {
 function logout() { stopHeartbeat(); auth = null; saveAuth(null); render(); }
 function renderLogin() {
   $("app").innerHTML = `
-  <div class="top"><div class="title">حاسبة رولكس</div></div>
-  <div class="card" style="margin-top:60px;text-align:right">
-    <div style="font-weight:700;color:var(--grn);margin-bottom:14px;font-size:16px;text-align:center">تسجيل الدخول</div>
-    <span class="lbl">اسم المستخدم</span>
+  <div class="top"><div class="title">Rolex Calculator</div></div>
+  <div class="card" style="margin-top:60px;text-align:left">
+    <div style="font-weight:700;color:var(--grn);margin-bottom:14px;font-size:16px;text-align:center">Sign in</div>
+    <span class="lbl">Username</span>
     <input id="loginUser" class="ltr" value="${esc(loginUser)}" oninput="loginUser=this.value" onkeydown="if(event.key==='Enter'){document.getElementById('loginPass').focus()}">
-    <div style="margin-top:10px"><span class="lbl">كلمة المرور</span>
+    <div style="margin-top:10px"><span class="lbl">Password</span>
     <input id="loginPass" type="password" class="ltr" value="${esc(loginPass)}" oninput="loginPass=this.value" onkeydown="if(event.key==='Enter'){doLogin()}"></div>
     ${loginErr ? `<div class="bar bad" style="margin-top:10px">${esc(loginErr)}</div>` : ""}
-    <button class="save on" style="margin-top:14px" onclick="doLogin()">دخول</button>
+    <button class="save on" style="margin-top:14px" onclick="doLogin()">Log in</button>
   </div>`;
   const e = $("loginUser");
   if (e && !loginUser) e.focus(); else { const p = $("loginPass"); if (p && loginUser) p.focus(); }
@@ -404,7 +404,7 @@ async function pollRemote(silent) {
     let f = cfg.fams.find((x) => x.id === famId) || famsOf(brand)[0] || cfg.fams[0];
     famId = f.id;
     if (!f.items.find((x) => x.id === itemId)) itemId = f.items[0].id;
-    if (changed && !silent) toast("القواعد تحدثت من جهاز ثاني ✓");
+    if (changed && !silent) toast("Rules updated from another device ✓");
     render();
   } else render();
 }
@@ -421,7 +421,7 @@ function boot() {
   const s = load();
   const base = normBase;
   const norm = normItem;
-  cfg = { rate: 84, curr2: "ريال", prices: {}, lastItem: null, deleted: [], fams: null };
+  cfg = { rate: 84, curr2: "QAR", prices: {}, lastItem: null, deleted: [], fams: null };
 
   if (s && s.fams && s.fams.length) {
     // المحفوظ هو المرجع — يشمل ما أضافه المستخدم
@@ -452,9 +452,13 @@ function boot() {
 
 // البراند: العائلات القديمة بلا حقل brand تُعامل رولكس، فبيانات
 // Supabase الحالية تبقى كما هي ولا يُكسر شيء.
-const BRANDS = ["رولكس", "كارتير"];
-const brandOf = (f) => f.brand || "رولكس";
-let brand = localStorage.getItem("brand") || "رولكس";
+const BRANDS = ["Rolex", "Cartier"];
+// البيانات المحفوظة تحمل «كارتير» بالعربي في ٨ عائلات — نطبّعها هنا
+// فلا يفرغ تبويب كارتير، وتبقى تعمل لو رجعت بيانات قديمة
+const BRAND_AR = { "رولكس": "Rolex", "كارتير": "Cartier" };
+const normBrand = (b) => BRAND_AR[b] || b || "Rolex";
+const brandOf = (f) => normBrand(f.brand);
+let brand = normBrand(localStorage.getItem("brand"));
 const famsOf = (b) => cfg.fams.filter((f) => brandOf(f) === b);
 function pickBrand(b) {
   brand = b; localStorage.setItem("brand", b);
@@ -468,7 +472,7 @@ const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; retur
 
 // ===== الحساب =====
 const fmt = (n) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
-const cardOf = (y) => y >= 2021 ? "قرنتي جديد" : y >= 2016 ? "قرنتي أبيض" : "قرنتي زيتي";
+const cardOf = (y) => y >= 2021 ? "New Card" : y >= 2016 ? "White Card" : "Olive Card";
 const riyal = (k) => roundTen(k / (cfg.rate || 84) * 1000);
 // عكس riyal(): يحوّل مبلغ ريال مُدخل إلى دينار للحساب الداخلي
 const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
@@ -481,10 +485,10 @@ const disp = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal(k)
 // تقريب واحد لكل شيء الآن، فـ dispR صار نفس disp. أُبقي الاسم لأن
 // مواضع العرض المقارِنة (النطاقات وجدول السنوات) تناديه.
 const dispR = disp;
-const unit = () => inputCur === "qar" ? (cfg.curr2 || "ريال") : "د.ك";
+const unit = () => inputCur === "qar" ? (cfg.curr2 || "QAR") : "KWD";
 const copyLines = (sell, b) => inputCur === "qar"
-  ? `البيع ${fmt(riyal(sell))} ${cfg.curr2}\nالشراء ${fmt(riyal(b.lo))}–${fmt(riyal(b.hi))} ${cfg.curr2}`
-  : `البيع ${fmt(sell)} د.ك (${fmt(riyal(sell))} ${cfg.curr2})\nالشراء ${fmt(b.lo)}–${fmt(b.hi)} د.ك`;
+  ? `Sell ${fmt(riyal(sell))} ${cfg.curr2}\nBuy ${fmt(riyal(b.lo))}–${fmt(riyal(b.hi))} ${cfg.curr2}`
+  : `Sell ${fmt(sell)} KWD (${fmt(riyal(sell))} ${cfg.curr2})\nBuy ${fmt(b.lo)}–${fmt(b.hi)} KWD`;
 // القيمة المدخلة محوّلة دائمًا للدينار (حسب عملة الإدخال المختارة)
 const enteredKwd = () => { const v = parseFloat(price); return isNaN(v) ? NaN : (inputCur === "qar" ? qarToKwd(v) : v); };
 
@@ -502,14 +506,14 @@ const r90 = (v) => roundTen(Math.max(v, 0));
 function calc(y, p, it) {
   const lines = []; let run = p;
   const d = p * (it.usedPct / 100);
-  lines.push({ t: `جديد ← مستخدم ${it.usedPct}%`, v: d }); run -= d;
+  lines.push({ t: `New → Used ${it.usedPct}%`, v: d }); run -= d;
   const seg = {}, ord = [];
   const push = (k, per, lab) => { if (!seg[k]) { seg[k] = { c: 0, per, lab }; ord.push(k); } seg[k].c++; };
   for (let x = CURRENT_YEAR; x > y; x--) {
-    if (x >= 2022) push("g", it.g, "سنوات القرنتي الجديد");
-    else if (x === 2021) { push("g", it.g, "سنوات القرنتي الجديد"); push("gw", it.gw, "فرق القرنتي: جديد ← أبيض"); }
-    else if (x >= 2016) push("w", it.w, "سنوات القرنتي الأبيض");
-    else push("o", it.o, "سنوات القرنتي الزيتي");
+    if (x >= 2022) push("g", it.g, "New-card years");
+    else if (x === 2021) { push("g", it.g, "New-card years"); push("gw", it.gw, "Card step: New → White"); }
+    else if (x >= 2016) push("w", it.w, "White-card years");
+    else push("o", it.o, "Olive-card years");
   }
   for (const k of ord) {
     const s2 = seg[k], tot = s2.c * s2.per; run -= tot;
@@ -560,8 +564,8 @@ function render() {
 
   let h = `
   <div class="top">
-    <div class="title">حاسبة رولكس</div>
-    <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">الجدول</button>
+    <div class="title">Rolex Calculator</div>
+    <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
   </div>
 
   <div class="strip bstrip">
@@ -570,18 +574,18 @@ function render() {
 
   <div class="strip">
     ${famsOf(brand).map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
-    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ عائلة</button>` : ""}
+    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ Family</button>` : ""}
   </div>
 
   <div class="igrid">
     ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
       <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
-    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ رفرنس</button>` : ""}
+    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ Ref</button>` : ""}
   </div>
 
   <div style="display:flex;gap:8px;margin:2px 0 10px">
-    <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">جديد</button>
-    <button class="f ${!isNew ? "on" : ""}" style="flex:1" onclick="setMode('used')">مستخدم</button>
+    <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">New</button>
+    <button class="f ${!isNew ? "on" : ""}" style="flex:1" onclick="setMode('used')">Used</button>
   </div>
 
   ${!isNew ? `<div class="ystrip">
@@ -592,41 +596,41 @@ function render() {
   <div class="card">
     <div class="head-r">
       <span>${esc(fam.name)} ${esc(it.name)}${it.ref ? ` • <span class="num ltr" style="display:inline-block">${esc(it.ref)}</span>` : ""}</span>
-      ${!isNew ? `<span class="num" style="flex-shrink:0">الجديد: ${has ? fmt(parseFloat(price)) + (inputCur === "qar" ? " ريال" : " د.ك") : "—"}</span>` : ""}
+      ${!isNew ? `<span class="num" style="flex-shrink:0">New: ${has ? fmt(parseFloat(price)) + (inputCur === "qar" ? " QAR" : " KWD") : "—"}</span>` : ""}
     </div>
-    ${!isNew ? `<div style="font-size:12px;color:var(--mut);margin-top:3px">موديل ${year} • ${cardOf(year)}</div>` : ""}
+    ${!isNew ? `<div style="font-size:12px;color:var(--mut);margin-top:3px">Model ${year} • ${cardOf(year)}</div>` : ""}
     ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
     <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(disp(R.sell)) : "—"}</div>
-    <div class="sub num">${inputCur === "qar" ? esc(cfg.curr2) : `د.ك${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}`}</div>
-    ${R && R.alt !== null && disp(R.alt) !== disp(R.sell) ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">أو ${fmt(disp(R.alt))}</button>` : ""}
-    ${R ? `<div class="buy"><span>تشتري ${isNew ? "جديد" : "مستخدم"} بـ (${buyPctTxt}%)</span>
+    <div class="sub num">${inputCur === "qar" ? esc(cfg.curr2) : `KWD${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}`}</div>
+    ${R && R.alt !== null && disp(R.alt) !== disp(R.sell) ? `<button class="chip" style="margin-top:8px" onclick="useAlt(${R.alt})">or ${fmt(disp(R.alt))}</button>` : ""}
+    ${R ? `<div class="buy"><span>Buy ${isNew ? "new" : "used"} at (${buyPctTxt}%)</span>
       <span class="num">${dispR(R.buy.lo) === dispR(R.buy.hi) ? fmt(dispR(R.buy.lo)) : fmt(dispR(R.buy.lo)) + " – " + fmt(dispR(R.buy.hi))} ${unit()}</span></div>` : ""}
-    ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">أدخل سعر الجديد ${inputCur === "qar" ? "بالريال" : "بالدينار"} بالأرقام تحت</div>`}
+    ${has ? "" : `<div style="font-size:12.5px;color:var(--gold);margin-top:10px;font-weight:600">Enter the new price in ${inputCur === "qar" ? "QAR" : "KWD"} on the keypad below</div>`}
   </div>
 
   <div style="display:flex;gap:8px;margin:8px 0 2px">
-    <button class="f ${inputCur === "kwd" ? "on" : ""}" style="flex:1" onclick="setInputCur('kwd')">أكتب بالدينار</button>
-    <button class="f ${inputCur === "qar" ? "on" : ""}" style="flex:1" onclick="setInputCur('qar')">أكتب بالريال</button>
+    <button class="f ${inputCur === "kwd" ? "on" : ""}" style="flex:1" onclick="setInputCur('kwd')">Enter in KWD</button>
+    <button class="f ${inputCur === "qar" ? "on" : ""}" style="flex:1" onclick="setInputCur('qar')">Enter in QAR</button>
   </div>
 
   <div class="pad"><div class="g">
     ${[["1", ""], ["2", "ABC"], ["3", "DEF"], ["4", "GHI"], ["5", "JKL"], ["6", "MNO"], ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"], [".", null], ["0", ""], ["⌫", null]]
       .map(([k, l]) => `<button class="k ${l === null ? "plain" : ""}" onclick="key('${k}')"><b>${k}</b>${l ? `<i>${l}</i>` : ""}</button>`).join("")}
   </div></div>
-  <button class="link" onclick="key('C')">مسح السعر</button>
+  <button class="link" onclick="key('C')">Clear price</button>
 
   ${R ? `<div class="row2" style="margin-top:6px">
-    <button class="btn-p" onclick="copyOne()">نسخ</button>
-    ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "إخفاء التفاصيل" : "التفاصيل"}</button>` : ""}</div>` : ""}
+    <button class="btn-p" onclick="copyOne()">Copy</button>
+    ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "Hide details" : "Details"}</button>` : ""}</div>` : ""}
   ${R && details && !isNew ? `<div style="margin-top:8px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
     ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
-    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>قبل التقريب</span><span class="num">${fmt(disp(R.exact))}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>Before rounding</span><span class="num">${fmt(disp(R.exact))}</span></div>
   </div>` : ""}
 
   <div style="display:flex;gap:8px;margin-top:6px">
-    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">الإعدادات ⚙</button>` : ""}
-    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">الجلسات 👥</button>` : ""}
-    <button class="link" style="flex:1;margin-top:0" onclick="logout()">خروج (${esc(auth.user)})</button>
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">Settings ⚙</button>` : ""}
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">Sessions 👥</button>` : ""}
+    <button class="link" style="flex:1;margin-top:0" onclick="logout()">Log out (${esc(auth.user)})</button>
   </div>`;
 
   if (sheet === "table" && has && !isNew) h += sheetTable(p, it, fam, years);
@@ -637,7 +641,7 @@ function render() {
       <div class="t1">${esc(fam.name)} — ${esc(it.name)}</div>
       <div class="t2 num">${year} • ${cardOf(year)}</div>
       <div class="n">${fmt(disp(R.sell))}</div>
-      <div class="t3 num">${inputCur === "qar" ? esc(cfg.curr2) : `د.ك • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}`}</div></div>`;
+      <div class="t3 num">${inputCur === "qar" ? esc(cfg.curr2) : `KWD • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}`}</div></div>`;
 
   $("app").innerHTML = h;
   if (sheet === "ask") { const e = $("askin"); if (e) { e.value = askVal; e.focus(); } }
@@ -655,61 +659,61 @@ function render() {
 }
 
 function sheetAsk() {
-  const t = askType === "fam" ? "اسم العائلة الجديدة" : "اسم الرفرنس الجديد";
+  const t = askType === "fam" ? "New family name" : "New reference name";
   return `<div class="mask c" onclick="closeSheet()"><div class="pr" onclick="event.stopPropagation()">
     <div style="font-weight:700;color:var(--grn);margin-bottom:10px">${t}</div>
-    <input id="askin" placeholder="${askType === "fam" ? "مثال: تشيليني" : "مثال: طوق ذهب 41 — جديد"}" oninput="askVal=this.value">
-    ${askType === "item" ? `<input id="askref" class="ltr" style="margin-top:8px" placeholder="الرفرنس (اختياري)" oninput="askRef=this.value" value="${esc(askRef)}">` : ""}
+    <input id="askin" placeholder="${askType === "fam" ? "e.g. Cellini" : "e.g. Fluted Bezel 41 — New"}" oninput="askVal=this.value">
+    ${askType === "item" ? `<input id="askref" class="ltr" style="margin-top:8px" placeholder="Reference (optional)" oninput="askRef=this.value" value="${esc(askRef)}">` : ""}
     <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn-s" onclick="closeSheet()">إلغاء</button>
-      <button class="btn-p" onclick="doAdd()">إضافة</button>
+      <button class="btn-s" onclick="closeSheet()">Cancel</button>
+      <button class="btn-p" onclick="doAdd()">Add</button>
     </div></div></div>`;
 }
 
 function sheetTable(p, it, fam, years) {
   return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sh-top"><b>${esc(it.name)} — الجديد ${fmt(disp(p))} ${unit()}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-top"><b>${esc(it.name)} — New ${fmt(disp(p))} ${unit()}</b><button class="x" onclick="closeSheet()">✕</button></div>
     <div class="sh-body">
       ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it.mMin, it.mMax);
         return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
           <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
           <span class="num" style="font-weight:700;color:var(--grn)">${fmt(dispR(r.main))}</span>
-          <span class="num" style="font-size:12px;color:var(--mut)">شراء ${fmt(dispR(b.lo))}–${fmt(dispR(b.hi))}</span></button>`;
+          <span class="num" style="font-size:12px;color:var(--mut)">Buy ${fmt(dispR(b.lo))}–${fmt(dispR(b.hi))}</span></button>`;
       }).join("")}
     </div>
-    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">نسخ الجدول</button></div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">Copy table</button></div>
   </div></div>`;
 }
 
 function timeAgo(iso) {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-  if (s < 60) return `قبل ${s} ث`;
+  if (s < 60) return `${s}s ago`;
   const m = Math.floor(s / 60);
-  if (m < 60) return `قبل ${m} د`;
-  return `قبل ${Math.floor(m / 60)} س`;
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
 }
 function sheetSessions() {
   const rows = sessionsView || [];
   const adminRows = rows.filter((r) => r.role === "admin");
   const viewerRows = rows.filter((r) => r.role !== "admin");
   return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sh-top"><b>الجلسات النشطة الآن</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-top"><b>Active sessions</b><button class="x" onclick="closeSheet()">✕</button></div>
     <div class="sh-body">
-      <div style="font-size:11.5px;color:var(--mut);margin-bottom:10px">أي جهاز بعث نبضة خلال آخر ٩٠ ثانية يُعتبر نشط الآن. لو شفت أكثر من جهاز بنفس الحساب بنفس الوقت، يعني الباسورد متشارك.</div>
-      ${sessionsLoading ? `<div class="bar">جاري التحميل…</div>` : `
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:10px">Any device that sent a heartbeat in the last 90 seconds counts as active now. More than one device on the same account at the same time means the password is shared.</div>
+      ${sessionsLoading ? `<div class="bar">Loading…</div>` : `
       <div class="g2">
         <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Admin</span><span class="p" style="font-size:20px;margin-top:4px">${adminRows.length}</span></div>
         <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Purchase</span><span class="p" style="font-size:20px;margin-top:4px">${viewerRows.length}</span></div>
       </div>
-      <div class="sec">التفاصيل</div>
-      ${rows.length === 0 ? `<div class="bar">ولا جهاز نشط الآن</div>` : rows.map((r) => `
+      <div class="sec">Details</div>
+      ${rows.length === 0 ? `<div class="bar">No active devices</div>` : rows.map((r) => `
         <div class="opt">
           <span class="n">${esc(r.user_name)} <span style="color:var(--mut);font-weight:400">(${esc(r.role)})</span></span>
           <span class="p">${timeAgo(r.last_seen)}</span>
         </div>`).join("")}
       `}
     </div>
-    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="loadActiveSessions()">تحديث</button></div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="loadActiveSessions()">Refresh</button></div>
   </div></div>`;
 }
 function openSessions() {
@@ -721,60 +725,60 @@ function openSessions() {
 function sheetRules(fam, it) {
   const d = draft, stOK = save(cfg);
   return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sh-top"><b>إعدادات ${esc(it.name)}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-top"><b>${esc(it.name)} settings</b><button class="x" onclick="closeSheet()">✕</button></div>
     <div class="sh-body">
-      <div class="bar ${stOK ? "" : "bad"}">التخزين: ${stOK ? "يعمل ✓ — تعديلاتك تنحفظ على جهازك" : "لا يعمل ✗ — استخدم النسخة الاحتياطية تحت"}</div>
-      ${dirty ? '<div class="bar warn" style="margin-top:8px">فيه تعديلات ما انحفظت — اضغط «حفظ التعديلات»</div>' : ""}
+      <div class="bar ${stOK ? "" : "bad"}">Storage: ${stOK ? "working ✓ — your edits are saved on this device" : "not working ✗ — use the backup below"}</div>
+      ${dirty ? '<div class="bar warn" style="margin-top:8px">Unsaved changes — press “Save changes”</div>' : ""}
 
-      <div class="sec">الرفرنس: ${esc(it.name)}</div>
-      <span class="lbl">الاسم</span><input id="d_name" value="${esc(d.name)}" oninput="setD('name',this.value)">
+      <div class="sec">Reference: ${esc(it.name)}</div>
+      <span class="lbl">Name</span><input id="d_name" value="${esc(d.name)}" oninput="setD('name',this.value)">
       <div class="g2" style="margin-top:8px">
-        <div><span class="lbl">الرفرنس</span><input id="d_ref" class="ltr" value="${esc(d.ref)}" oninput="setD('ref',this.value)"></div>
-        <div><span class="lbl">ملاحظة</span><input id="d_note" value="${esc(d.note)}" oninput="setD('note',this.value)"></div>
+        <div><span class="lbl">Reference</span><input id="d_ref" class="ltr" value="${esc(d.ref)}" oninput="setD('ref',this.value)"></div>
+        <div><span class="lbl">Note</span><input id="d_note" value="${esc(d.note)}" oninput="setD('note',this.value)"></div>
       </div>
-      <div style="margin-top:8px"><span class="lbl">جديد ← مستخدم %</span><input id="d_usedPct" inputmode="decimal" value="${esc(d.usedPct)}" oninput="setD('usedPct',this.value)"></div>
+      <div style="margin-top:8px"><span class="lbl">New → Used %</span><input id="d_usedPct" inputmode="decimal" value="${esc(d.usedPct)}" oninput="setD('usedPct',this.value)"></div>
       <div class="g2" style="margin-top:8px">
-        <div><span class="lbl">مارجن جديد من %</span><input id="d_nMin" inputmode="decimal" value="${esc(d.nMin)}" oninput="setD('nMin',this.value)"></div>
-        <div><span class="lbl">مارجن جديد إلى %</span><input id="d_nMax" inputmode="decimal" value="${esc(d.nMax)}" oninput="setD('nMax',this.value)"></div>
+        <div><span class="lbl">New margin from %</span><input id="d_nMin" inputmode="decimal" value="${esc(d.nMin)}" oninput="setD('nMin',this.value)"></div>
+        <div><span class="lbl">New margin to %</span><input id="d_nMax" inputmode="decimal" value="${esc(d.nMax)}" oninput="setD('nMax',this.value)"></div>
       </div>
       <div class="g2" style="margin-top:8px">
-        <div><span class="lbl">مارجن مستخدم من %</span><input id="d_mMin" inputmode="decimal" value="${esc(d.mMin)}" oninput="setD('mMin',this.value)"></div>
-        <div><span class="lbl">مارجن مستخدم إلى %</span><input id="d_mMax" inputmode="decimal" value="${esc(d.mMax)}" oninput="setD('mMax',this.value)"></div>
+        <div><span class="lbl">Used margin from %</span><input id="d_mMin" inputmode="decimal" value="${esc(d.mMin)}" oninput="setD('mMin',this.value)"></div>
+        <div><span class="lbl">Used margin to %</span><input id="d_mMax" inputmode="decimal" value="${esc(d.mMax)}" oninput="setD('mMax',this.value)"></div>
       </div>
 
-      <div class="sec">سلّم السنوات — خاص بهذا الرفرنس</div>
+      <div class="sec">Year ladder — this reference only</div>
       <div class="g2">
-        <div><span class="lbl">قرنتي جديد / سنة</span><input id="d_g" inputmode="decimal" value="${esc(d.g)}" oninput="setD('g',this.value)"></div>
-        <div><span class="lbl">فرق جديد ← أبيض</span><input id="d_gw" inputmode="decimal" value="${esc(d.gw)}" oninput="setD('gw',this.value)"></div>
-        <div><span class="lbl">قرنتي أبيض / سنة</span><input id="d_w" inputmode="decimal" value="${esc(d.w)}" oninput="setD('w',this.value)"></div>
-        <div><span class="lbl">قرنتي زيتي / سنة</span><input id="d_o" inputmode="decimal" value="${esc(d.o)}" oninput="setD('o',this.value)"></div>
+        <div><span class="lbl">New card / year</span><input id="d_g" inputmode="decimal" value="${esc(d.g)}" oninput="setD('g',this.value)"></div>
+        <div><span class="lbl">New → White step</span><input id="d_gw" inputmode="decimal" value="${esc(d.gw)}" oninput="setD('gw',this.value)"></div>
+        <div><span class="lbl">White card / year</span><input id="d_w" inputmode="decimal" value="${esc(d.w)}" oninput="setD('w',this.value)"></div>
+        <div><span class="lbl">Olive card / year</span><input id="d_o" inputmode="decimal" value="${esc(d.o)}" oninput="setD('o',this.value)"></div>
       </div>
 
-      <div class="sec">العائلة: ${esc(fam.name)}</div>
-      <span class="lbl">اسم العائلة</span><input id="d_famName" value="${esc(d.famName)}" oninput="setD('famName',this.value)">
+      <div class="sec">Family: ${esc(fam.name)}</div>
+      <span class="lbl">Family name</span><input id="d_famName" value="${esc(d.famName)}" oninput="setD('famName',this.value)">
 
-      <div class="sec" style="color:var(--red)">حذف</div>
+      <div class="sec" style="color:var(--red)">Delete</div>
       <div style="display:flex;gap:8px">
-        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteItem()">حذف هذا الرفرنس</button>
-        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteFam()">حذف العائلة كاملة</button>
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteItem()">Delete this reference</button>
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteFam()">Delete entire family</button>
       </div>
 
-      <div class="sec">التحويل (عام)</div>
+      <div class="sec">Conversion (global)</div>
       <div class="g2">
-        <div><span class="lbl">معامل القسمة (÷ ثم ×1000)</span><input id="d_rate" inputmode="decimal" value="${esc(d.rate)}" oninput="setD('rate',this.value)"></div>
-        <div><span class="lbl">اسم العملة الثانية</span><input id="d_curr2" value="${esc(d.curr2)}" oninput="setD('curr2',this.value)"></div>
+        <div><span class="lbl">Divisor (÷ then ×1000)</span><input id="d_rate" inputmode="decimal" value="${esc(d.rate)}" oninput="setD('rate',this.value)"></div>
+        <div><span class="lbl">Second currency name</span><input id="d_curr2" value="${esc(d.curr2)}" oninput="setD('curr2',this.value)"></div>
       </div>
 
-      <div class="sec">نسخة احتياطية</div>
-      <div style="font-size:11.5px;color:var(--mut);margin-bottom:8px">انسخ إعداداتك واحفظها بملاحظاتك. لو ضاعت الصقها هنا وارجعها.</div>
-      <div style="display:flex;gap:8px"><button class="mini" onclick="expCfg()">نسخ إعداداتي</button><button class="mini" onclick="impCfg()">استرجاع</button></div>
-      <textarea rows="3" class="ltr" style="margin-top:8px;font-size:12px" placeholder="الصق النص هنا للاسترجاع…" oninput="ioText=this.value">${esc(ioText)}</textarea>
+      <div class="sec">Backup</div>
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:8px">Copy your settings and keep them in your notes. If they are lost, paste them back here.</div>
+      <div style="display:flex;gap:8px"><button class="mini" onclick="expCfg()">Copy my settings</button><button class="mini" onclick="impCfg()">Restore</button></div>
+      <textarea rows="3" class="ltr" style="margin-top:8px;font-size:12px" placeholder="Paste the text here to restore…" oninput="ioText=this.value">${esc(ioText)}</textarea>
       ${ioMsg ? `<div style="font-size:12px;color:var(--grn);text-align:center;font-weight:600;margin-top:6px">${esc(ioMsg)}</div>` : ""}
-      <div class="small">التعديلات تخص هذا الرفرنس وحده ولا تمس أي ساعة ثانية</div>
+      <div class="small">Changes apply to this reference only and never touch another watch</div>
     </div>
     <div class="sh-foot">
       <button class="save ${saveState === "ok" ? "ok" : dirty ? "on" : ""}" onclick="saveRules()">
-        ${saveState === "ok" ? "تم الحفظ ✓" : dirty ? "حفظ التعديلات" : "محفوظ"}</button>
+        ${saveState === "ok" ? "Saved ✓" : dirty ? "Save changes" : "Saved"}</button>
     </div>
   </div></div>`;
 }
@@ -802,11 +806,11 @@ function uid() { return "u" + Date.now().toString(36) + Math.floor(Math.random()
 function doAdd() {
   if (!isAdmin()) return;
   const nm = (askVal || "").trim();
-  if (!nm) { toast("اكتب الاسم أولاً"); return; }
+  if (!nm) { toast("Enter a name first"); return; }
   if (askType === "fam") {
     const id = uid();
     cfg.fams.push({ id, name: nm, brand, items: [{
-      id: uid(), name: "رفرنس 1", ref: "", note: "",
+      id: uid(), name: "Ref 1", ref: "", note: "",
       usedPct: 7, nMin: 8, nMax: 10, mMin: 8, mMax: 10, g: 80, gw: 120, w: 50, o: 50,
     }]});
     famId = id; itemId = cfg.fams[cfg.fams.length - 1].items[0].id;
@@ -822,7 +826,7 @@ function doAdd() {
   }
   price = ""; cfg.lastItem = itemId; save(cfg);
   sheet = null; render();
-  toast(askType === "fam" ? "أُضيفت العائلة ✓" : "أُضيف الرفرنس ✓");
+  toast(askType === "fam" ? "Family added ✓" : "Reference added ✓");
   remotePush();
 }
 
@@ -882,7 +886,7 @@ function saveRules() {
     ok = !!(chk && Number(chk.mMin) === it.mMin && Number(chk.g) === it.g);
   }
   dirty = false; saveState = ok ? "ok" : null;
-  if (!ok) ioMsg = "تعذّر الحفظ — انسخ إعداداتك احتياطياً";
+  if (!ok) ioMsg = "Could not save — copy your settings as a backup";
   render();
   if (ok) remotePush();
   setTimeout(() => { saveState = null; render(); }, 2200);
@@ -893,8 +897,8 @@ function markDeleted(id) { if (!cfg.deleted.includes(id)) cfg.deleted.push(id); 
 function deleteItem() {
   if (!isAdmin()) return;
   const f = curFam(), it = curItem();
-  if (f.items.length <= 1) { toast("ما تقدر تحذف آخر رفرنس بالعائلة — احذف العائلة كامل"); return; }
-  if (!confirm(`متأكد تبي تحذف "${it.name}"؟`)) return;
+  if (f.items.length <= 1) { toast("Can’t delete the last reference in a family — delete the whole family"); return; }
+  if (!confirm(`Delete "${it.name}"?`)) return;
   f.items = f.items.filter((x) => x.id !== it.id);
   markDeleted(it.id);
   delete cfg.prices[it.id];
@@ -903,14 +907,14 @@ function deleteItem() {
   cfg.lastItem = itemId;
   save(cfg);
   sheet = null; render();
-  toast("تم حذف الرفرنس ✓");
+  toast("Reference deleted ✓");
   remotePush();
 }
 function deleteFam() {
   if (!isAdmin()) return;
-  if (cfg.fams.length <= 1) { toast("ما تقدر تحذف آخر عائلة"); return; }
+  if (cfg.fams.length <= 1) { toast("Can’t delete the last family"); return; }
   const f = curFam();
-  if (!confirm(`متأكد تبي تحذف عائلة "${f.name}" وكل مراجعها؟`)) return;
+  if (!confirm(`Delete the "${f.name}" family and all its references?`)) return;
   markDeleted(f.id);
   for (const it of f.items) { markDeleted(it.id); delete cfg.prices[it.id]; }
   cfg.fams = cfg.fams.filter((x) => x.id !== f.id);
@@ -920,7 +924,7 @@ function deleteFam() {
   cfg.lastItem = itemId;
   save(cfg);
   sheet = null; render();
-  toast("تم حذف العائلة ✓");
+  toast("Family deleted ✓");
   remotePush();
 }
 
@@ -934,34 +938,34 @@ function copyTxt(t) {
   document.body.removeChild(a);
   return Promise.resolve();
 }
-function expCfg() { copyTxt(JSON.stringify(cfg)).then(() => toast("تم نسخ إعداداتك ✓")); }
+function expCfg() { copyTxt(JSON.stringify(cfg)).then(() => toast("Settings copied ✓")); }
 function impCfg() {
   try {
     const o = JSON.parse(ioText);
     if (!o || !o.fams) throw 0;
     localStorage.setItem(KEY, JSON.stringify(o));
-    boot(); ioText = ""; sheet = null; render(); toast("تم الاسترجاع ✓");
-  } catch (e) { toast("النص غير صالح"); }
+    boot(); ioText = ""; sheet = null; render(); toast("Restored ✓");
+  } catch (e) { toast("Invalid text"); }
 }
 function copyOne() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
   if (mode === "new") {
     const b = buyOf(p, it.nMin, it.nMax);
-    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • جديد\n${copyLines(p, b)}`)
-      .then(() => toast("تم النسخ ✓"));
+    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • New\n${copyLines(p, b)}`)
+      .then(() => toast("Copied ✓"));
     return;
   }
   const c0 = calc(year, p, it);
   const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
   const b = buyOf(sell, it.mMin, it.mMax);
   copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\n${copyLines(sell, b)}`)
-    .then(() => toast("تم النسخ ✓"));
+    .then(() => toast("Copied ✓"));
 }
 function copyTable() {
   const it = curItem(), fam = curFam(), p = enteredKwd();
-  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — الجديد ${fmt(disp(p))} ${unit()}`];
+  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — New ${fmt(disp(p))} ${unit()}`];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(dispR(calc(y, p, it).main))} ${unit()}`);
-  copyTxt(rows.join("\n")).then(() => toast("تم نسخ الجدول ✓"));
+  copyTxt(rows.join("\n")).then(() => toast("Table copied ✓"));
 }
 
 auth = loadAuth();
@@ -978,7 +982,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-09-16-4";
+const BUILD = "2026-10-21-en";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
