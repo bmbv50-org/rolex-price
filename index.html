@@ -674,8 +674,9 @@ function render() {
   <div class="top">
     <div class="qbox">
       <input id="q" class="qin" value="${esc(qry)}" oninput="setQ(this.value)"
-             placeholder="Search ref or name" autocomplete="off" spellcheck="false"
-             autocapitalize="none" autocorrect="off" enterkeyhint="search">
+             placeholder="Search by reference" autocomplete="off" spellcheck="false"
+             autocapitalize="none" autocorrect="off" enterkeyhint="search"
+             inputmode="numeric" pattern="[0-9]*">
       <button id="qx" class="qx" style="display:${qry ? "" : "none"}" onclick="clearQ()">&times;</button>
     </div>
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
@@ -1108,7 +1109,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search3";
+const BUILD = "2026-11-01-search5";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
