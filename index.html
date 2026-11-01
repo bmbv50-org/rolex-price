@@ -1129,7 +1129,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search6";
+const BUILD = "2026-11-01-search7";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
@@ -1137,7 +1137,8 @@ async function checkBuild() {
   try {
     const txt = await fetch(location.pathname + "?b=" + Date.now(), { cache: "no-store" }).then((r) => r.text());
     const m = txt.match(/const BUILD = "([^"]+)"/);
-    if (m && m[1] !== BUILD) location.reload();
+    // لا reload(): يقبل المخزَّن. نطلب العنوان بوسم النسخة فيُجلب جديدًا.
+    if (m && m[1] !== BUILD) location.replace(location.pathname + "?v=" + encodeURIComponent(m[1]));
   } catch (e) {}
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBuild(); });
