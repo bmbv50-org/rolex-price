@@ -517,22 +517,38 @@ const qnorm = (s) => String(s == null ? "" : s)
   .replace(/[٠-٩]/g, (d) => String(AR_DIG.indexOf(d)))
   .replace(/[^0-9a-zA-Z\u0600-\u06FF]/g, "").toUpperCase();
 
+// رتبة الكلمة الواحدة في ساعةٍ ما. -1 = لا تطابق.
+function rankTok(n, r, nm, fn) {
+  if (r && r.indexOf(n) === 0) return 0;          // الرفرنس يبدأ بها — الأقرب
+  // المرجع الكامل «126334-0002» يحمل لاحقة المينا، والمخزَّن «126334».
+  if (r && r.length >= 5 && n.indexOf(r) === 0) return 1;
+  if (r && r.indexOf(n) > -1) return 2;
+  if (nm.indexOf(n) > -1) return 3;
+  if (fn.indexOf(n) > -1) return 4;
+  return -1;
+}
+
 function searchItems(raw) {
-  const n = qnorm(raw);
-  if (n.length < 2) return [];
+  // كل كلمة شرط: «126710 باتمان» يعني الرقم **و** الاسم معًا، لا أحدهما.
+  const toks = String(raw == null ? "" : raw).trim().split(/\s+/)
+    .map(qnorm).filter(Boolean);
+  if (!toks.length) return [];
   const out = [];
   cfg.fams.forEach((f) => (f.items || []).forEach((i) => {
     const r = qnorm(i.ref), nm = qnorm(i.name), fn = qnorm(f.name);
-    let rank = -1;
-    if (r && r.indexOf(n) === 0) rank = 0;        // الرفرنس يبدأ به — الأقرب
-    // المرجع الكامل «126334-0002» يحمل لاحقة المينا، والمخزَّن «126334».
-    // فإن بدأ المكتوبُ بالمرجع قُبل — وإلا رجع صفرًا لمن يلصق الرقم كاملًا.
-    else if (r && r.length >= 5 && n.indexOf(r) === 0) rank = 1;
-    else if (r && r.indexOf(n) > -1) rank = 2;
-    else if (nm.indexOf(n) > -1) rank = 3;
-    else if (fn.indexOf(n) > -1) rank = 4;
-    if (rank > -1) out.push({ rank: rank, f: f, i: i });
+    let best = 99, all = true;
+    for (const n of toks) {
+      const k = rankTok(n, r, nm, fn);
+      if (k < 0) { all = false; break; }
+      if (k < best) best = k;
+    }
+    if (all) out.push({ rank: best, f: f, i: i });
   }));
+  // كُتب الرقم والاسم ملتصقين بلا مسافة («126710باتمان») — نفصلهما ونعيد.
+  if (!out.length && toks.length === 1) {
+    const parts = toks[0].match(/[0-9]+|[A-Z؀-ۿ]+/g);
+    if (parts && parts.length > 1) return searchItems(parts.join(" "));
+  }
   out.sort((a, b) => a.rank - b.rank ||
     String(a.i.ref || "").localeCompare(String(b.i.ref || "")));
   return out.slice(0, 30);
@@ -544,7 +560,9 @@ function searchItems(raw) {
 // فنحدّث منطقة الاختيار وحدها، والحقل يبقى حيًّا كما تركه.
 // منطقة الاختيار: النتائج أو الأشرطة. مستقلّة لأن البحث يحدّثها وحدها.
 function pickZoneHTML() {
-  const qres = qnorm(qry).length >= 2 ? searchItems(qry) : null;
+  // من أول حرف لا من الثاني: المرور بحرفٍ واحد كان يعرض كل الموديلات
+  // فجأةً وهو يمسح الرقم ليكتب الاسم. (المالك ٢٠٢٦-١١-٠١)
+  const qres = qnorm(qry).length >= 1 ? searchItems(qry) : null;
   const fam = curFam();
   if (qres !== null) {
     return qres.length
@@ -1138,7 +1156,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search8";
+const BUILD = "2026-11-01-search9";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
