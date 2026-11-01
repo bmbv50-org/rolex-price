@@ -33,6 +33,22 @@ input:focus,textarea:focus{border-color:var(--grn)}
 /* الهيدر */
 .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .title{font-size:19px;font-weight:700;color:var(--grn)}
+.qbox{position:relative;flex:1;margin-right:8px}
+.qin{width:100%;padding:9px 30px 9px 12px;border-radius:11px;font-size:15px;font-weight:600;
+     border:1.5px solid var(--line);background:var(--card);color:var(--txt);
+     direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.qin:focus{outline:none;border-color:var(--grn)}
+.qin::placeholder{font-weight:500;color:var(--mut);font-size:13.5px}
+.qx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;
+    border:none;background:transparent;color:var(--mut);font-size:15px;line-height:1}
+.qres{max-height:198px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.qr{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;
+    border:1.5px solid var(--line);background:var(--card);text-align:left;width:100%}
+.qr-ref{font-size:14px;font-weight:700;color:var(--grn);min-width:92px}
+.qr-n{font-size:13px;font-weight:600;color:var(--txt);flex:1}
+.qr-f{font-size:11.5px;color:var(--mut)}
+.qnone{padding:16px 10px;text-align:center;color:var(--mut);font-size:13.5px;
+       border:1.5px dashed var(--line);border-radius:12px;margin-bottom:8px}
 .btn-o{padding:8px 16px;border-radius:10px;font-size:13.5px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--grn)}
 .btn-o:disabled{color:var(--line)}
 
@@ -465,6 +481,48 @@ const normBrand = (b) => BRAND_AR[b] || b || "Rolex";
 const brandOf = (f) => normBrand(f.brand);
 let brand = normBrand(localStorage.getItem("brand"));
 const famsOf = (b) => cfg.fams.filter((f) => brandOf(f) === b);
+let qry = "";
+
+// تطبيع البحث: تُطوى الأرقام العربية، ويُحذف كل ما ليس حرفًا أو رقمًا —
+// فـ«126710 BLNR» و«126710blnr» و«١٢٦٧١٠» سواء.
+const AR_DIG = "٠١٢٣٤٥٦٧٨٩";
+const qnorm = (s) => String(s == null ? "" : s)
+  .replace(/[٠-٩]/g, (d) => String(AR_DIG.indexOf(d)))
+  .replace(/[^0-9a-zA-Z\u0600-\u06FF]/g, "").toUpperCase();
+
+function searchItems(raw) {
+  const n = qnorm(raw);
+  if (n.length < 2) return [];
+  const out = [];
+  cfg.fams.forEach((f) => (f.items || []).forEach((i) => {
+    const r = qnorm(i.ref), nm = qnorm(i.name), fn = qnorm(f.name);
+    let rank = -1;
+    if (r && r.indexOf(n) === 0) rank = 0;        // الرفرنس يبدأ به — الأقرب
+    // المرجع الكامل «126334-0002» يحمل لاحقة المينا، والمخزَّن «126334».
+    // فإن بدأ المكتوبُ بالمرجع قُبل — وإلا رجع صفرًا لمن يلصق الرقم كاملًا.
+    else if (r && r.length >= 5 && n.indexOf(r) === 0) rank = 1;
+    else if (r && r.indexOf(n) > -1) rank = 2;
+    else if (nm.indexOf(n) > -1) rank = 3;
+    else if (fn.indexOf(n) > -1) rank = 4;
+    if (rank > -1) out.push({ rank: rank, f: f, i: i });
+  }));
+  out.sort((a, b) => a.rank - b.rank ||
+    String(a.i.ref || "").localeCompare(String(b.i.ref || "")));
+  return out.slice(0, 30);
+}
+
+function setQ(v) { qry = v; render(); }
+
+function jumpTo(fid, iid) {
+  if (_swipe) return;
+  const f = cfg.fams.find((x) => x.id === fid);
+  if (!f) return;
+  brand = brandOf(f); localStorage.setItem("brand", brand);
+  famId = fid; itemId = iid;
+  price = cfg.prices[iid] || ""; altPick = null; cfg.lastItem = iid; save(cfg);
+  qry = ""; render();
+}
+
 function pickBrand(b) {
   if (_swipe) return;
   brand = b; localStorage.setItem("brand", b);
@@ -571,13 +629,26 @@ function render() {
   }
   const years = [];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) years.push(y);
+  // null = لا بحث جارٍ (تُعرض الأشرطة)، ومصفوفة = نتائج تحلّ محلّها
+  const qres = qnorm(qry).length >= 2 ? searchItems(qry) : null;
 
   let h = `
   <div class="top">
-    <div class="title">Rolex Calculator</div>
+    <div class="qbox">
+      <input id="q" class="qin" value="${esc(qry)}" oninput="setQ(this.value)"
+             placeholder="Search ref or name" autocomplete="off" spellcheck="false"
+             autocapitalize="characters" enterkeyhint="search">
+      ${qry ? `<button class="qx" onclick="setQ('')">&times;</button>` : ""}
+    </div>
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
   </div>
 
+  ${qres !== null ? (qres.length ? `<div class="qres" data-sk="qres">
+    ${qres.map((h) => `<button class="qr" onclick="jumpTo('${h.f.id}','${h.i.id}')">
+      <span class="qr-ref num ltr">${esc(h.i.ref || "—")}</span>
+      <span class="qr-n">${esc(h.i.name)}</span>
+      <span class="qr-f">${esc(h.f.name)}</span></button>`).join("")}
+  </div>` : `<div class="qnone">No match for <b class="num ltr">${esc(qry)}</b></div>`) : `
   <div class="strip bstrip" data-sk="brands">
     ${BRANDS.map((b) => `<button class="f b ${b === brand ? "on" : ""}" onclick="pickBrand('${b}')">${esc(b)}</button>`).join("")}
   </div>
@@ -591,7 +662,7 @@ function render() {
     ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
       <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
     ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ Ref</button>` : ""}
-  </div>
+  </div>`}
 
   <div style="display:flex;gap:8px;margin:2px 0 10px">
     <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">New</button>
@@ -1018,7 +1089,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-10-21-fix3b";
+const BUILD = "2026-11-01-search";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
