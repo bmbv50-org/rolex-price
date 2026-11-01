@@ -511,7 +511,47 @@ function searchItems(raw) {
   return out.slice(0, 30);
 }
 
-function setQ(v) { qry = v; render(); }
+// لا يُعاد بناء الصفحة عند كل حرف: الحقل يُحذف ويُبنى فيُعاد التركيز
+// إليه، والآيفون يرجّع الكيبورد لوضع الحروف عند كل إعادة تركيز — فيضطر
+// الموظف لتبديله بين كل رقمين. (أبلغ عنه المالك ٢٠٢٦-١١-٠١ مرتين.)
+// فنحدّث منطقة الاختيار وحدها، والحقل يبقى حيًّا كما تركه.
+// منطقة الاختيار: النتائج أو الأشرطة. مستقلّة لأن البحث يحدّثها وحدها.
+function pickZoneHTML() {
+  const qres = qnorm(qry).length >= 2 ? searchItems(qry) : null;
+  const fam = curFam();
+  if (qres !== null) {
+    return qres.length
+      ? `<div class="qres" data-sk="qres">${qres.map((h) =>
+          `<button class="qr" onclick="jumpTo('${h.f.id}','${h.i.id}')">
+            <span class="qr-ref num ltr">${esc(h.i.ref || "—")}</span>
+            <span class="qr-n">${esc(h.i.name)}</span>
+            <span class="qr-f">${esc(h.f.name)}</span></button>`).join("")}</div>`
+      : `<div class="qnone">No match for <b class="num ltr">${esc(qry)}</b></div>`;
+  }
+  return `<div class="strip bstrip" data-sk="brands">
+    ${BRANDS.map((b) => `<button class="f b ${b === brand ? "on" : ""}" onclick="pickBrand('${b}')">${esc(b)}</button>`).join("")}
+  </div>
+  <div class="strip" data-sk="fams">
+    ${famsOf(brand).map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
+    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ Family</button>` : ""}
+  </div>
+  <div class="igrid">
+    ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
+      <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
+    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ Ref</button>` : ""}
+  </div>`;
+}
+
+function setQ(v) {
+  qry = v;
+  const z = $("pickzone");
+  if (!z) { render(); return; }
+  z.innerHTML = pickZoneHTML();
+  const x = $("qx");
+  if (x) x.style.display = qry ? "" : "none";
+}
+
+function clearQ() { qry = ""; render(); }
 
 function jumpTo(fid, iid) {
   if (_swipe) return;
@@ -629,8 +669,6 @@ function render() {
   }
   const years = [];
   for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) years.push(y);
-  // null = لا بحث جارٍ (تُعرض الأشرطة)، ومصفوفة = نتائج تحلّ محلّها
-  const qres = qnorm(qry).length >= 2 ? searchItems(qry) : null;
 
   let h = `
   <div class="top">
@@ -638,31 +676,12 @@ function render() {
       <input id="q" class="qin" value="${esc(qry)}" oninput="setQ(this.value)"
              placeholder="Search ref or name" autocomplete="off" spellcheck="false"
              autocapitalize="none" autocorrect="off" enterkeyhint="search">
-      ${qry ? `<button class="qx" onclick="setQ('')">&times;</button>` : ""}
+      <button id="qx" class="qx" style="display:${qry ? "" : "none"}" onclick="clearQ()">&times;</button>
     </div>
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
   </div>
 
-  ${qres !== null ? (qres.length ? `<div class="qres" data-sk="qres">
-    ${qres.map((h) => `<button class="qr" onclick="jumpTo('${h.f.id}','${h.i.id}')">
-      <span class="qr-ref num ltr">${esc(h.i.ref || "—")}</span>
-      <span class="qr-n">${esc(h.i.name)}</span>
-      <span class="qr-f">${esc(h.f.name)}</span></button>`).join("")}
-  </div>` : `<div class="qnone">No match for <b class="num ltr">${esc(qry)}</b></div>`) : `
-  <div class="strip bstrip" data-sk="brands">
-    ${BRANDS.map((b) => `<button class="f b ${b === brand ? "on" : ""}" onclick="pickBrand('${b}')">${esc(b)}</button>`).join("")}
-  </div>
-
-  <div class="strip" data-sk="fams">
-    ${famsOf(brand).map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
-    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ Family</button>` : ""}
-  </div>
-
-  <div class="igrid">
-    ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
-      <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
-    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ Ref</button>` : ""}
-  </div>`}
+  <div id="pickzone">${pickZoneHTML()}</div>
 
   <div style="display:flex;gap:8px;margin:2px 0 10px">
     <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">New</button>
@@ -1089,7 +1108,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search2";
+const BUILD = "2026-11-01-search3";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
