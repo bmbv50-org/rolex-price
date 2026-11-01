@@ -41,6 +41,8 @@ input:focus,textarea:focus{border-color:var(--grn)}
 .qin::placeholder{font-weight:500;color:var(--mut);font-size:13.5px}
 .qx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;
     border:none;background:transparent;color:var(--mut);font-size:15px;line-height:1}
+.qmb{flex:0 0 auto;padding:8px 9px;border-radius:10px;font-size:12px;font-weight:800;
+     border:1.5px solid var(--line);background:var(--card);color:var(--grn);min-width:42px;margin-left:6px}
 .qres{max-height:198px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .qr{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;
     border:1.5px solid var(--line);background:var(--card);text-align:left;width:100%}
@@ -482,6 +484,22 @@ const brandOf = (f) => normBrand(f.brand);
 let brand = normBrand(localStorage.getItem("brand"));
 const famsOf = (b) => cfg.fams.filter((f) => brandOf(f) === b);
 let qry = "";
+// نوع كيبورد البحث. رقميّ افتراضًا لأن كل المراجع تبدأ بأرقام، ولأن
+// كيبورد الآيفون كان يرجع لوضع الحروف بين رقم وآخر. والتبديل محفوظ
+// لأن الموظف يبحث بطريقة واحدة غالبًا. (المالك ٢٠٢٦-١١-٠١)
+let qmode = localStorage.getItem("qmode") === "abc" ? "abc" : "num";
+
+function toggleQMode() {
+  qmode = qmode === "num" ? "abc" : "num";
+  localStorage.setItem("qmode", qmode);
+  const el = $("q"), b = $("qmb");
+  if (!el) { render(); return; }
+  el.setAttribute("inputmode", qmode === "num" ? "numeric" : "text");
+  if (b) b.textContent = qmode === "num" ? "ABC" : "123";
+  // الآيفون لا يبدّل الكيبورد إلا بإعادة تركيز — والضغطة نفسها إيماءة
+  // مستخدم فيُسمح بإعادة فتحه.
+  el.blur(); el.focus();
+}
 
 // تطبيع البحث: تُطوى الأرقام العربية، ويُحذف كل ما ليس حرفًا أو رقمًا —
 // فـ«126710 BLNR» و«126710blnr» و«١٢٦٧١٠» سواء.
@@ -672,11 +690,13 @@ function render() {
 
   let h = `
   <div class="top">
+    <button id="qmb" class="qmb" onclick="toggleQMode()">${qmode === "num" ? "ABC" : "123"}</button>
     <div class="qbox">
       <input id="q" class="qin" value="${esc(qry)}" oninput="setQ(this.value)"
-             placeholder="Search by reference" autocomplete="off" spellcheck="false"
+             placeholder="${qmode === "num" ? "Search by reference" : "Search ref or name"}"
+             autocomplete="off" spellcheck="false"
              autocapitalize="none" autocorrect="off" enterkeyhint="search"
-             inputmode="numeric" pattern="[0-9]*">
+             inputmode="${qmode === "num" ? "numeric" : "text"}">
       <button id="qx" class="qx" style="display:${qry ? "" : "none"}" onclick="clearQ()">&times;</button>
     </div>
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
@@ -1109,7 +1129,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search5";
+const BUILD = "2026-11-01-search6";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
