@@ -492,13 +492,22 @@ let qmode = localStorage.getItem("qmode") === "abc" ? "abc" : "num";
 function toggleQMode() {
   qmode = qmode === "num" ? "abc" : "num";
   localStorage.setItem("qmode", qmode);
-  const el = $("q"), b = $("qmb");
-  if (!el) { render(); return; }
-  el.setAttribute("inputmode", qmode === "num" ? "numeric" : "text");
-  if (b) b.textContent = qmode === "num" ? "ABC" : "123";
-  // الآيفون لا يبدّل الكيبورد إلا بإعادة تركيز — والضغطة نفسها إيماءة
-  // مستخدم فيُسمح بإعادة فتحه.
-  el.blur(); el.focus();
+  const old = $("q");
+  if (!old) { render(); return; }
+  // الآيفون يحفظ نوع الكيبورد للعنصر نفسه، فتغيير inputmode عليه لا
+  // يُقرأ ولو أُعيد التركيز. فنستبدل العنصر بنسخةٍ منه ليقرأ النوع من
+  // جديد. وإعادة البناء هنا مقصودة: تقع بضغطة المستخدم لا أثناء كتابته.
+  const num = qmode === "num";
+  const v = old.value;
+  const fresh = old.cloneNode(false);     // يحمل id وoninput معه
+  fresh.setAttribute("inputmode", num ? "numeric" : "text");
+  fresh.setAttribute("placeholder", num ? "Search by reference" : "Search ref or name");
+  fresh.value = v;
+  old.parentNode.replaceChild(fresh, old);
+  const b = $("qmb");
+  if (b) b.textContent = num ? "ABC" : "123";
+  fresh.focus();
+  try { fresh.setSelectionRange(v.length, v.length); } catch (e) {}
 }
 
 // تطبيع البحث: تُطوى الأرقام العربية، ويُحذف كل ما ليس حرفًا أو رقمًا —
@@ -1129,7 +1138,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-01-search7";
+const BUILD = "2026-11-01-search8";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
