@@ -670,7 +670,7 @@ function toast(m) { ioMsg = m; render(); clearTimeout(toastT); toastT = setTimeo
 const eraDot = (y) => y >= 2021 ? "#0B5C3F" : y >= 2016 ? "#9AA096" : "#7C7F4A";
 
 function render() {
-  if (!auth) { renderLogin(); return; }
+  if (!auth) { smClose(); renderLogin(); return; }
   const activeEl = document.activeElement;
   const activeId = activeEl && activeEl.id;
   const selStart = activeId && "selectionStart" in activeEl ? activeEl.selectionStart : null;
@@ -769,6 +769,7 @@ function render() {
   <div style="display:flex;gap:8px;margin-top:6px">
     ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">Settings ⚙</button>` : ""}
     ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">Sessions 👥</button>` : ""}
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="smOpen()">Sell %</button>` : ""}
     <button class="link" style="flex:1;margin-top:0" onclick="logout()">Log out (${esc(auth.user)})</button>
   </div>`;
 
@@ -1131,6 +1132,237 @@ function copyTable() {
   copyTxt(rows.join("\n")).then(() => toast("Table copied ✓"));
 }
 
+// ===== نِسَب البيع (للأدمن) — جدول sell_margins، منفصل تمامًا عن نِسَب الشراء =====
+// طبقة مستقلة خارج #app حتى لا يمسحها تصيير الحاسبة. الصلاحية تفرضها قاعدة البيانات.
+const SM_BRANDS = ["Rolex", "Cartier", "Omega", "Hublot"];
+const SM = { rows: [], brand: "Rolex", q: "", only: "all", edit: null, err: "", qmode: "numeric", state: "loading", busy: false, sig: "", timer: null };
+const smEl = () => document.getElementById("sm");
+const smNorm = (s) => String(s).replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[^0-9a-z]/gi, "").toLowerCase();
+const smNum = (s) => { const t = String(s).trim().replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,]/g, ".").replace("%", ""); return t === "" ? null : Number(t); };
+const smOk = (n) => n != null && isFinite(n) && n >= 1 && n <= 30;
+const SM_CSS = `
+#sm{position:fixed;inset:0;z-index:9000;overflow:auto;background:#F4F3EE;color:#16211B;font-size:15px;line-height:1.35;text-align:left;direction:ltr;-webkit-overflow-scrolling:touch}
+#sm *{box-sizing:border-box}
+#sm .sm-wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 90px}
+#sm button{font:inherit;cursor:pointer;border:1.5px solid #E2E0D8;background:#fff;border-radius:10px;padding:8px 12px;color:inherit;white-space:nowrap}
+#sm button.sm-on{background:#0B5C3F;border-color:#0B5C3F;color:#fff}
+#sm input{font:inherit;font-size:16px;width:100%;min-width:0;border:1.5px solid #E2E0D8;border-radius:10px;padding:10px;background:#fff;color:#16211B}
+#sm .sm-top{display:flex;gap:8px;margin-bottom:10px}#sm .sm-top>*{flex:1}
+#sm .sm-top .sm-title{background:#7A4A00;border-color:#7A4A00;color:#fff;text-align:center;border-radius:10px;padding:10px;font-weight:700;flex:2}
+#sm .sm-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}#sm .sm-sb{display:flex;gap:6px}
+#sm .sm-sum{display:flex;gap:6px;margin:10px 0}#sm .sm-sum button{flex:1;font-size:13px}
+#sm .sm-off{font-size:12.5px;color:#6B6F66;margin:8px 0}
+#sm .sm-add{width:100%;border-style:dashed;color:#0B5C3F;font-weight:700;margin-bottom:10px}
+#sm .sm-fam{background:#fff;border:1.5px solid #E2E0D8;border-radius:12px;margin-bottom:10px;overflow:hidden}
+#sm .sm-fh,#sm .sm-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer}
+#sm .sm-fh{background:#EAF1ED;font-weight:700;color:#0B5C3F}
+#sm .sm-row{border-top:1px solid #E2E0D8}#sm .sm-row small{display:block;color:#6B6F66;font-size:11.5px}
+#sm .sm-var{padding-left:26px;background:#FAFAF7}#sm .sm-addr{justify-content:center;color:#0B5C3F;font-size:13.5px;font-weight:600}
+#sm .sm-chip{min-width:62px;text-align:center;border-radius:8px;padding:5px 8px;font-weight:700;background:#EAF1ED;color:#0B5C3F;font-size:14px}
+#sm .sm-inh{background:#EEF0F6;color:#3A4A8C}#sm .sm-need{background:#FFF3D6;color:#8A5A00;font-size:12px}
+#sm .sm-back{position:fixed;inset:0;background:#0006;display:flex;align-items:flex-start;padding:60px 10px}
+#sm .sm-sheet{background:#fff;width:100%;max-width:500px;margin:0 auto;border-radius:16px;padding:16px;max-height:80vh;overflow:auto}
+#sm .sm-sheet h3{color:#0B5C3F;margin:0 0 10px;font-size:16px}#sm .sm-g{display:flex;gap:8px;margin-top:10px}#sm .sm-g>*{flex:1}
+#sm .sm-err{color:#8B1E1E;font-size:13px;margin-top:8px}#sm .sm-del{color:#8B1E1E}`;
+
+async function smApi(method, path, body, prefer) {
+  if (!(await ensureToken())) throw new Error("No connection or session ended");
+  const headers = { ...supaHeaders(), "Content-Type": "application/json" };
+  if (prefer) headers.Prefer = prefer;
+  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  return { status: r.status, ok: r.ok, j };
+}
+async function smLoad() {
+  try {
+    let all = [];
+    for (let off = 0; ; off += 1000) {
+      const r = await smApi("GET", `sell_margins?select=brand,model,ref,variant,margin,note,sort&order=sort.asc,model.asc,ref.asc,variant.asc&limit=1000&offset=${off}`);
+      if (!r.ok) { SM.state = r.status === 404 ? "setup" : "error"; return false; }
+      all = all.concat(r.j); if (r.j.length < 1000) break;
+    }
+    SM.rows = all; SM.state = "ok"; return true;
+  } catch (e) { if (SM.state !== "ok") SM.state = "error"; return false; }
+}
+function smModels(b) {
+  const m = new Map();
+  for (const r of SM.rows) {
+    if (r.brand !== b) continue;
+    if (!m.has(r.model)) m.set(r.model, { name: r.model, sort: r.sort, head: null, refs: [], vars: {} });
+    const g = m.get(r.model);
+    if (r.ref === "") g.head = r; else if (r.variant === "") g.refs.push(r); else (g.vars[r.ref] = g.vars[r.ref] || []).push(r);
+  }
+  return [...m.values()].sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name));
+}
+const smBrands = () => [...new Set([...SM_BRANDS, ...SM.rows.map((r) => r.brand)])];
+function smEff(g, it) {
+  if (it.margin != null) return { v: Number(it.margin), t: "own" };
+  if (g.head && g.head.margin != null) return { v: Number(g.head.margin), t: "inh" };
+  return { v: null, t: "need" };
+}
+const smChip = (e) => e.t === "need" ? `<span class="sm-chip sm-need">needs ratio</span>` : `<span class="sm-chip ${e.t === "inh" ? "sm-inh" : ""}">${e.v}%</span>`;
+// الوسائط تمر عبر data-* لا داخل نص جافاسكربت — أسماء الموديلات يكتبها المستخدم
+const smAct = (act, o = {}) => `data-act="${act}"` + Object.entries(o).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
+function smHit(ref, model) { const Q = smNorm(SM.q), R = smNorm(ref); return !Q || R.includes(Q) || (R.length >= 5 && Q.startsWith(R)) || smNorm(model).includes(Q); }
+function smBrandList(b) {
+  let h = "";
+  for (const g of smModels(b)) {
+    const show = g.refs.filter((it) => smHit(it.ref, g.name) && (SM.only === "all" || smEff(g, it).t === "need"));
+    if (!show.length && (g.refs.length || SM.only === "need" || (SM.q && !smNorm(g.name).includes(smNorm(SM.q))))) continue;
+    const hm = g.head && g.head.margin != null ? Number(g.head.margin) : null;
+    h += `<div class="sm-fam"><div class="sm-fh" ${smAct("model", { b, m: g.name })}><span>${esc(g.name)}</span><span class="sm-chip ${hm != null ? "sm-inh" : "sm-need"}">${hm != null ? "Model " + hm + "%" : "Set model %"}</span></div>`;
+    for (const it of show) {
+      const e = smEff(g, it);
+      h += `<div class="sm-row" ${smAct("ref", { b, m: g.name, r: it.ref })}><span><b>${esc(it.ref)}</b><small>${e.t === "inh" ? "inherited from model" : esc(it.note || "")}</small></span>${smChip(e)}</div>`;
+      for (const v of g.vars[it.ref] || []) h += `<div class="sm-row sm-var" ${smAct("var", { b, m: g.name, r: it.ref, v: v.variant })}><span>${esc(v.variant)}</span><span class="sm-chip">${Number(v.margin)}%</span></div>`;
+    }
+    h += `<div class="sm-row sm-addr" ${smAct("newref", { b, m: g.name })}>+ Add reference</div></div>`;
+  }
+  return h;
+}
+function smResults() {
+  if (!smNorm(SM.q)) return smBrandList(SM.brand) || `<div class="sm-off">${SM.only === "need" ? "Nothing needs a ratio." : "No models yet. Use “+ Add model”."}</div>`;
+  let h = "";
+  for (const b of smBrands()) { const x = smBrandList(b); if (x) h += `<div class="sm-off">${esc(b)}</div>` + x; }
+  return h || `<div class="sm-off">Nothing matches.</div>`;
+}
+const smFind = (b, m, r, v) => SM.rows.find((x) => x.brand === b && x.model === m && x.ref === r && x.variant === v);
+function smSheet() {
+  const e = SM.edit; if (!e) return "";
+  const row = e.type === "model" ? smFind(e.b, e.m, "", "") : e.type === "ref" ? smFind(e.b, e.m, e.r, "") : e.type === "var" ? smFind(e.b, e.m, e.r, e.v) : null;
+  const title = { model: `${e.m} — model margin`, ref: e.r, var: `${e.r} · ${e.v}`, newfam: `${e.b} — new model`, newref: `${e.m} — new reference` }[e.type];
+  const val = row && row.margin != null ? Number(row.margin) : "";
+  let f;
+  if (e.type === "newfam") f = `<input id="smval" placeholder="Model name"><div class="sm-g"><input id="smsz" inputmode="decimal" placeholder="Size mm (optional)"></div>`;
+  else if (e.type === "newref") f = `<input id="smval" placeholder="Reference"><div class="sm-g"><input id="smnm" inputmode="decimal" placeholder="Sell margin % (optional)"></div>`;
+  else f = `<input id="smval" inputmode="decimal" placeholder="Sell margin %" value="${val}">`;
+  const canDel = e.type === "ref" || e.type === "var" || (e.type === "model" && !SM.rows.some((x) => x.brand === e.b && x.model === e.m && x.ref !== ""));
+  return `<div class="sm-back" data-act="backdrop"><div class="sm-sheet"><h3>${esc(title)}</h3>${f}
+    <div class="sm-g"><button data-act="cancel">Cancel</button><button class="sm-on" data-act="save">${e.type.startsWith("new") ? "Add" : "Save"}</button></div>
+    ${e.type === "ref" ? `<div class="sm-g"><input id="smvn" placeholder="Dial / size / metal"><input id="smvm" inputmode="decimal" placeholder="%"></div><div class="sm-g"><button data-act="addvar">+ Add variant</button></div>` : ""}
+    ${canDel ? `<div class="sm-g"><button class="sm-del" data-act="del">${e.confirm ? "Tap again to delete" : "Delete"}</button></div>` : ""}
+    ${SM.err ? `<div class="sm-err">${esc(SM.err)}</div>` : ""}</div></div>`;
+}
+function smRender() {
+  const el = smEl(); if (!el) return;
+  const keep = {}; el.querySelectorAll("input").forEach((i) => (keep[i.id] = i.value));
+  const top = el.scrollTop, sx = el.querySelector(".sm-tabs")?.scrollLeft || 0;
+  const head = `<div class="sm-top"><button data-act="close">‹ Calculator</button><div class="sm-title">Sell margins</div></div>`;
+  if (SM.state !== "ok") {
+    el.innerHTML = `<div class="sm-wrap">${head}<div class="sm-off">${SM.state === "loading" ? "Loading…" : SM.state === "setup" ? "Not set up yet: run sell_margins.sql in Supabase." : "Could not load. Check connection."}</div><button data-act="reload">Reload</button></div>`;
+    return;
+  }
+  let a = 0, n = 0; for (const g of smModels(SM.brand)) for (const it of g.refs) { a++; if (smEff(g, it).t === "need") n++; }
+  el.innerHTML = `<div class="sm-wrap">${head}
+    <div class="sm-tabs">${smBrands().map((b) => `<button class="${b === SM.brand ? "sm-on" : ""}" ${smAct("brand", { b })}>${esc(b)}</button>`).join("")}</div>
+    <div class="sm-sb"><input id="smq" type="search" inputmode="${SM.qmode}" placeholder="${SM.qmode === "numeric" ? "Search by reference" : "Search ref or name"}" value="${esc(SM.q)}"><button data-act="qmode">${SM.qmode === "numeric" ? "ABC" : "123"}</button></div>
+    <div class="sm-sum"><button class="${SM.only === "all" ? "sm-on" : ""}" data-act="all">All ${a}</button><button class="${SM.only === "need" ? "sm-on" : ""}" data-act="need">Needs ratio ${n}</button></div>
+    <div class="sm-off">Saved to server. Pricing check is not connected yet.</div>
+    <button class="sm-add" data-act="newfam">+ Add model</button>
+    <div id="smlist">${smResults()}</div></div>${smSheet()}`;
+  if (SM.edit) for (const k in keep) { const i = document.getElementById(k); if (i && k !== "smq") i.value = keep[k]; }
+  el.scrollTop = top; const t = el.querySelector(".sm-tabs"); if (t) t.scrollLeft = sx;
+}
+function smFail(m) { SM.err = m; SM.busy = false; smRender(); }
+// كتابة واحدة ثم إعادة قراءة من الخادم؛ قائمة فارغة = رُفضت بالصلاحيات وليست نجاحًا
+async function smWrite(method, path, body, prefer) {
+  SM.busy = true;
+  try {
+    const r = await smApi(method, path, body, (prefer ? prefer + "," : "") + "return=representation");
+    if (r.status === 409) return smFail("This already exists");
+    if (!r.ok || !Array.isArray(r.j) || !r.j.length) return smFail("NOT saved — check sign in / permission, then try again");
+  } catch (e) { return smFail("NOT saved — no connection"); }
+  const fresh = await smLoad(); SM.busy = false; SM.edit = null; SM.err = fresh ? "" : "Saved, reload to see it"; smRender();
+}
+const smKey = "on_conflict=brand,model,ref,variant";
+const smMerge = "resolution=merge-duplicates";
+const smEq = (o) => Object.entries(o).map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`).join("&");
+function smSave() {
+  if (SM.busy) return;
+  const e = SM.edit, g = (id) => (document.getElementById(id)?.value || "").trim(), v = g("smval");
+  if (e.type === "newfam") {
+    if (!v) return smFail("Write the model name");
+    const sz = smNum(g("smsz"));
+    if (g("smsz") && !(sz >= 15 && sz <= 60)) return smFail("Size must be between 15 and 60 mm");
+    const title = sz ? `${v} · ${sz} mm` : v;
+    if (smModels(e.b).some((x) => smNorm(x.name) === smNorm(title) && x.name.toLowerCase() === title.toLowerCase())) return smFail("This model already exists");
+    return smWrite("POST", "sell_margins", { brand: e.b, model: title, ref: "", variant: "", margin: null, note: "", sort: -Math.floor(Date.now() / 1000) });
+  }
+  if (e.type === "newref") {
+    const ref = v.toUpperCase().replace(/\s/g, "");
+    if (!smNorm(ref)) return smFail("Write the reference");
+    const dup = SM.rows.find((x) => x.brand === e.b && x.variant === "" && x.ref && smNorm(x.ref) === smNorm(ref));
+    if (dup) return smFail("This reference already exists under " + dup.model);
+    const m = smNum(g("smnm"));
+    if (g("smnm") && !smOk(m)) return smFail("Enter a number between 1 and 30");
+    const sort = smModels(e.b).find((x) => x.name === e.m)?.sort || 0;
+    return smWrite("POST", "sell_margins", { brand: e.b, model: e.m, ref, variant: "", margin: m, note: "", sort });
+  }
+  const m = smNum(v);
+  if (v !== "" && !smOk(m)) return smFail("Enter a number between 1 and 30");
+  if (e.type === "var" && v === "") return smFail("Enter a number, or use Delete");
+  const ref = e.type === "model" ? "" : e.r, variant = e.type === "var" ? e.v : "";
+  const cur = smFind(e.b, e.m, ref, variant);
+  const sort = cur ? cur.sort : smModels(e.b).find((x) => x.name === e.m)?.sort || 0;
+  const note = cur && cur.margin != null && Number(cur.margin) === m ? cur.note : cur && m == null ? cur.note : "";
+  smWrite("POST", `sell_margins?${smKey}`, { brand: e.b, model: e.m, ref, variant, margin: m, note, sort }, smMerge);
+}
+function smAddVar() {
+  if (SM.busy) return;
+  const e = SM.edit, name = (document.getElementById("smvn").value || "").trim(), m = smNum(document.getElementById("smvm").value);
+  if (!name) return smFail("Write the variant name");
+  if (!smOk(m)) return smFail("Enter a number between 1 and 30");
+  if (smFind(e.b, e.m, e.r, name)) return smFail("This variant already exists");
+  smWrite("POST", "sell_margins", { brand: e.b, model: e.m, ref: e.r, variant: name, margin: m, note: "", sort: smFind(e.b, e.m, e.r, "").sort });
+}
+function smDelete() {
+  const e = SM.edit; if (SM.busy) return;
+  if (!e.confirm) { e.confirm = true; return smRender(); }
+  // المرجع يُحذف مع نسخه؛ الموديل لا يُحذف إلا وهو فارغ
+  const f = { brand: e.b, model: e.m, ref: e.type === "model" ? "" : e.r };
+  if (e.type === "var") f.variant = e.v;
+  if (e.type !== "model" && !f.ref) return;
+  smWrite("DELETE", `sell_margins?${smEq(f)}`);
+}
+function smClick(ev) {
+  const t = ev.target.closest("[data-act]"); if (!t) return;
+  const a = t.dataset.act, d = t.dataset;
+  if (a === "backdrop") { if (ev.target === t && !SM.busy) { SM.edit = null; SM.err = ""; smRender(); } return; }
+  if (a === "close") return smClose();
+  if (a === "reload") { SM.state = "loading"; smRender(); return smLoad().then(smRender); }
+  if (a === "brand") { SM.brand = d.b; SM.only = "all"; SM.q = ""; }
+  else if (a === "all" || a === "need") SM.only = a;
+  else if (a === "qmode") { SM.qmode = SM.qmode === "numeric" ? "text" : "numeric"; smRender(); return document.getElementById("smq").focus(); }
+  else if (a === "cancel") { if (SM.busy) return; SM.edit = null; SM.err = ""; }
+  else if (a === "save") return smSave();
+  else if (a === "addvar") return smAddVar();
+  else if (a === "del") return smDelete();
+  else { SM.edit = { type: a, b: d.b || SM.brand, m: d.m, r: d.r, v: d.v }; SM.err = ""; smRender(); return document.getElementById("smval").focus(); }
+  smRender();
+}
+async function smOpen() {
+  if (!isAdmin() || smEl()) return;
+  if (!document.getElementById("smcss")) { const s = document.createElement("style"); s.id = "smcss"; s.textContent = SM_CSS; document.head.appendChild(s); }
+  const el = document.createElement("div"); el.id = "sm";
+  el.addEventListener("click", smClick);
+  el.addEventListener("input", (ev) => { if (ev.target.id === "smq") { SM.q = ev.target.value; document.getElementById("smlist").innerHTML = smResults(); } });
+  el.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && SM.edit && ev.target.id !== "smq") smSave(); });
+  document.body.appendChild(el);
+  SM.state = "loading"; SM.edit = null; SM.err = ""; SM.q = ""; smRender();
+  await smLoad(); smRender();
+  // تعديل من جهاز آخر يظهر وحده — القائمة فقط، فلا يتزحزح السحب ولا يُمسح المكتوب
+  SM.timer = setInterval(async () => {
+    if (!isAdmin()) return smClose();
+    if (document.hidden || SM.edit || SM.state !== "ok") return;
+    const before = JSON.stringify(SM.rows);
+    if ((await smLoad()) && !SM.edit && smEl() && JSON.stringify(SM.rows) !== before) document.getElementById("smlist").innerHTML = smResults();
+  }, 15000);
+}
+function smClose() {
+  clearInterval(SM.timer); SM.timer = null; SM.edit = null;
+  const el = smEl(); if (el) { el.remove(); SM.rows = []; }
+}
+
 auth = loadAuth();
 boot(); render();
 pollRemote(true);
@@ -1145,7 +1377,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-28-nodefaults";
+const BUILD = "2026-11-28-sellmargins";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
