@@ -715,6 +715,7 @@ function render() {
       <button id="qx" class="qx" style="display:${qry ? "" : "none"}" onclick="clearQ()">&times;</button>
     </div>
     <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
+    ${isAdmin() ? `<button class="btn-o sm-topbtn" style="margin-left:6px;white-space:nowrap;flex:0 0 auto" onclick="smOpen()">Sell %</button>` : ""}
   </div>
 
   <div id="pickzone">${pickZoneHTML()}</div>
@@ -1377,7 +1378,7 @@ window.addEventListener("beforeunload", stopHeartbeat);
 // وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
 // بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
 // الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
-const BUILD = "2026-11-28-sellmargins";
+const BUILD = "2026-11-28-selltop";
 let lastBuildCheck = 0;
 async function checkBuild() {
   if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
