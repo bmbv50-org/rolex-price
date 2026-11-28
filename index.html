@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0B5C3F">
+<title>Rolex Calculator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B5C3F'/><text y='68' x='50' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'>R</text></svg>">
+<style>
+:root{
+  --bg:#F6F5F1; --card:#fff; --line:#E6E3DA; --txt:#16201A; --mut:#7A8378;
+  --grn:#0B5C3F; --grnbg:#EDF4F0; --gold:#B08D3E; --red:#A34A3C;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,"Noto Sans Arabic",sans-serif;
+  padding:16px 12px calc(30px + env(safe-area-inset-bottom));
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none;
+}
+.wrap{max-width:480px;margin:0 auto}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit;background:var(--card);border:1.5px solid var(--line);color:var(--txt);
+  border-radius:12px;padding:12px 13px;font-size:16px;width:100%;outline:none;-webkit-user-select:text;user-select:text}
+input:focus,textarea:focus{border-color:var(--grn)}
+.num{font-variant-numeric:tabular-nums}
+.ltr{direction:ltr;text-align:left}
+
+/* الهيدر */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.title{font-size:19px;font-weight:700;color:var(--grn)}
+.qbox{position:relative;flex:1;margin-right:8px}
+.qin{width:100%;padding:9px 30px 9px 12px;border-radius:11px;font-size:15px;font-weight:600;
+     border:1.5px solid var(--line);background:var(--card);color:var(--txt);
+     direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.qin:focus{outline:none;border-color:var(--grn)}
+.qin::placeholder{font-weight:500;color:var(--mut);font-size:13.5px}
+.qx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;
+    border:none;background:transparent;color:var(--mut);font-size:15px;line-height:1}
+.qmb{flex:0 0 auto;padding:8px 9px;border-radius:10px;font-size:12px;font-weight:800;
+     border:1.5px solid var(--line);background:var(--card);color:var(--grn);min-width:42px;margin-left:6px}
+.qres{max-height:198px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.qr{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;
+    border:1.5px solid var(--line);background:var(--card);text-align:left;width:100%}
+.qr-ref{font-size:14px;font-weight:700;color:var(--grn);min-width:92px}
+.qr-n{font-size:13px;font-weight:600;color:var(--txt);flex:1}
+.qr-f{font-size:11.5px;color:var(--mut)}
+.qnone{padding:16px 10px;text-align:center;color:var(--mut);font-size:13.5px;
+       border:1.5px dashed var(--line);border-radius:12px;margin-bottom:8px}
+.btn-o{padding:8px 16px;border-radius:10px;font-size:13.5px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--grn)}
+.btn-o:disabled{color:var(--line)}
+
+/* زر الساعة */
+.watch{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left}
+.watch .fam{font-size:11.5px;color:var(--mut);margin-bottom:2px}
+.watch .nm{font-size:17px;font-weight:700}
+.watch .rf{font-size:12px;color:var(--mut);direction:ltr;text-align:left}
+.watch .go{color:var(--grn);font-size:13px;font-weight:700;flex-shrink:0}
+
+/* بطاقة النتيجة */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:15px;margin-top:10px;text-align:center}
+.chip{background:var(--bg);border:1.5px dashed var(--line);border-radius:999px;padding:6px 16px;font-size:13px;color:var(--mut)}
+.chip.warn{border-color:var(--gold);color:var(--gold);font-weight:700}
+.big{font-size:52px;font-weight:700;color:var(--grn);line-height:1;margin-top:10px}
+.sub{font-size:14px;color:var(--mut);margin-top:3px}
+.note{font-size:11.5px;color:var(--gold);margin-top:6px}
+.buy{width:100%;height:100%;box-sizing:border-box;background:var(--grnbg);border-radius:12px;padding:9px 13px;display:flex;justify-content:space-between;align-items:center}
+.buyslot{height:44px;margin-top:12px;display:flex;align-items:center;justify-content:center}
+.altslot{height:33px;margin-top:8px;display:flex;align-items:center;justify-content:center}
+.hint{font-size:12.5px;color:var(--gold);font-weight:600;text-align:center;line-height:1.3}
+.metarow{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:12px;color:var(--mut);margin-top:3px}
+.metarow span{white-space:nowrap}
+.buy span:first-child{font-size:12.5px;color:var(--grn)}
+.buy span:last-child{font-size:17px;font-weight:700;color:var(--grn)}
+.row2{display:flex;gap:8px;margin-top:10px}
+.btn-p{flex:1;background:var(--card);color:var(--grn);border:1.5px solid var(--grn);border-radius:12px;padding:10px 0;font-size:14.5px;font-weight:700}
+.btn-p.on{background:var(--grn);color:#fff}
+.btn-s{flex:1;background:var(--card);color:var(--mut);border:1.5px solid var(--line);border-radius:12px;padding:10px 0;font-size:14.5px;font-weight:600}
+
+/* السنوات */
+.ylab{display:flex;justify-content:space-between;align-items:center;margin:12px 2px 7px;font-size:12.5px;color:var(--mut)}
+.ygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.y{padding:11px 0;border-radius:11px;font-size:15px;border:1.5px solid var(--line);background:var(--card);font-variant-numeric:tabular-nums}
+.y.on{background:var(--grn);color:#fff;border-color:var(--grn);font-weight:700}
+
+/* الكيباد */
+.pad{background:#D1D3D9;border-radius:14px;padding:8px;margin-top:14px;direction:ltr}
+.pad .g{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.k{height:56px;border-radius:8px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.35);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111}
+.k.plain{background:transparent;box-shadow:none}
+.k:active{background:#E6E7EB}
+.k.plain:active{background:rgba(0,0,0,.07)}
+.k b{font-size:25px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.k i{font-size:9px;letter-spacing:1.4px;color:#6D6D72;font-weight:600;font-style:normal;margin-top:2px}
+.link{width:100%;padding:9px 0;font-size:13px;color:var(--mut);margin-top:6px}
+
+/* الشيتات */
+.mask{position:fixed;inset:0;background:rgba(12,20,16,.5);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column}
+.sh-top{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sh-top b{font-size:16px;color:var(--grn)}
+.x{background:var(--bg);border-radius:999px;width:30px;height:30px;font-size:17px;color:var(--mut)}
+.sh-body{overflow-y:auto;padding:14px;flex:1;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.sh-foot{padding:12px;border-top:1px solid var(--line);flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+
+/* القوائم */
+.grp{font-size:12.5px;font-weight:700;color:var(--grn);margin:14px 0 6px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 13px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--card);width:100%;text-align:left;margin-bottom:5px}
+.opt.on{border-color:var(--grn);background:var(--grnbg)}
+.opt .n{font-size:14.5px;font-weight:600;display:block}
+.opt .r{font-size:11.5px;color:var(--mut);direction:ltr;display:block;text-align:left}
+.opt .p{font-size:12.5px;color:var(--grn);flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* الإعدادات */
+.lbl{font-size:11.5px;color:var(--mut);margin-bottom:4px;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.sec{font-size:12.5px;font-weight:700;color:var(--grn);margin:16px 0 8px}
+.bar{border-radius:11px;padding:8px 12px;font-size:11.5px;text-align:center;background:var(--bg);border:1.5px solid var(--line);color:var(--mut)}
+.bar.bad{background:#FBEDEA;border-color:var(--red);color:var(--red)}
+.bar.warn{background:#FBF4E4;border-color:var(--gold);color:var(--gold);font-weight:700;font-size:12.5px}
+.save{width:100%;border-radius:12px;padding:14px 0;font-size:15.5px;font-weight:700;background:#C9CEC8;color:#fff}
+.save.on{background:var(--grn)}
+.save.ok{background:#1F7A55}
+.small{font-size:11.5px;color:var(--mut);text-align:center;margin-top:10px}
+.mini{padding:11px 0;border-radius:11px;font-size:13.5px;font-weight:700;border:1.5px solid var(--grn);background:var(--card);color:var(--grn);flex:1}
+
+/* ملء الشاشة */
+.full{position:fixed;inset:0;background:var(--grn);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:70;padding:20px;color:#fff}
+.full .t1{color:#CFE3D8;font-size:17px;font-weight:600;text-align:center}
+.full .t2{color:#CFE3D8;font-size:15px;margin-top:4px}
+.full .n{font-size:19vw;font-weight:700;line-height:1.05;margin-top:12px;font-variant-numeric:tabular-nums}
+.full .t3{color:#CFE3D8;font-size:21px;font-weight:600}
+
+/* شريط العائلات والرفرنسات */
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.strip::-webkit-scrollbar{display:none}
+.f{flex:0 0 auto;padding:9px 15px;border-radius:11px;font-size:14px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--txt)}
+.f.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.bstrip{margin-bottom:6px}
+.f.b{font-size:15px;padding:8px 20px}
+.f.add{border-style:dashed;color:var(--grn);font-weight:600}
+.igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.i{padding:9px 5px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
+   display:flex;flex-direction:column;gap:1px;align-items:center;justify-content:center;min-height:56px}
+.i.on{border-color:var(--grn);background:var(--grnbg)}
+.i .n{font-size:12.5px;font-weight:600;line-height:1.25;color:var(--txt)}
+.i.on .n{color:var(--grn)}
+.i .r{font-size:11px;color:var(--mut);direction:ltr;font-variant-numeric:tabular-nums}
+.i.add{border-style:dashed;color:var(--grn);justify-content:center;font-size:13px;font-weight:600}
+.ystrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.yb{flex:0 0 auto;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:600;border:1.5px solid var(--line);
+    background:var(--card);display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;color:var(--txt)}
+.yb.on{border-color:var(--grn);background:var(--grnbg);color:var(--grn)}
+.dot{width:8px;height:8px;border-radius:99px;display:inline-block}
+.head-r{font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pr{background:var(--card);border-radius:16px;padding:16px;width:100%;max-width:340px}
+.mask.c{align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+// ===== بيانات وأسعار رولكس =====
+const CURRENT_YEAR = 2026, MIN_YEAR = 2006;
+// لا نِسَب في الكود: الصفحة عامة. القوائم والنِسَب تأتي من قاعدة البيانات بعد الدخول.
+const FAMS = [];
+const WAIT_ID = "_wait"; // خانة مؤقتة لجهاز لم تصله البيانات بعد — لا تُحفظ في القاعدة أبدًا
+const waitFams = () => [{ id: WAIT_ID, name: "Loading…", items: [{ id: WAIT_ID + "1", name: "Loading…", ref: "", note: "",
+  usedPct: 0, nMin: 0, nMax: 0, mMin: 0, mMax: 0, g: 0, gw: 0, w: 0, o: 0 }] }];
+
+// ===== التخزين =====
+const KEY = "rolexPricer.v1";
+const save = (o) => { try { const { newPrices, ...rest } = o; localStorage.setItem(KEY, JSON.stringify(rest)); return true; } catch (e) { return false; } };
+const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
+
+// ===== تسجيل الدخول =====
+// الدخول من Supabase Auth: لا كلمات سر في الصفحة، والصلاحية تفرضها قاعدة
+// البيانات (RLS) لا الواجهة. المستخدم يكتب admin أو purchase كما اعتاد.
+const ACCOUNTS = {
+  admin: { email: "admin@orgluxury.org", role: "admin" },
+  purchase: { email: "pur@orgluxury.org", role: "viewer" },
+  pur: { email: "pur@orgluxury.org", role: "viewer" },
+};
+const AUTH_KEY = "rolexPricer.auth.v3";
+const loadAuth = () => { try { const r = localStorage.getItem(AUTH_KEY); const a = r ? JSON.parse(r) : null; return a && a.refresh ? a : null; } catch (e) { return null; } };
+const saveAuth = (a) => { try { a ? localStorage.setItem(AUTH_KEY, JSON.stringify(a)) : localStorage.removeItem(AUTH_KEY); localStorage.removeItem("rolexPricer.auth.v2"); } catch (e) {} };
+const isAdmin = () => !!(auth && auth.role === "admin");
+let auth = null, loginUser = "", loginPass = "", loginErr = "", loginBusy = false;
+
+async function tokenRequest(grant, body) {
+  const r = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=${grant}`, {
+    method: "POST", headers: { apikey: SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  let j = null;
+  try { j = await r.json(); } catch (e) {}
+  return { status: r.status, ok: r.ok && !!(j && j.access_token), j };
+}
+const sessionOf = (u, role, j) => ({ user: u, role, token: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 });
+
+// يجدّد الرمز قبل انتهائه. انقطاع الشبكة لا يُخرج الموظف؛ الرفض الصريح يُخرجه.
+let refreshing = null;
+async function ensureToken() {
+  if (!auth) return false;
+  if (auth.exp - Date.now() > 60000) return true;
+  const disk = loadAuth();                       // تبويب آخر ربما جدّده
+  if (disk && disk.exp - Date.now() > 60000) { auth = disk; return true; }
+  if (!refreshing) refreshing = (async () => {
+    const cur = disk || auth;
+    try {
+      const t = await tokenRequest("refresh_token", { refresh_token: cur.refresh });
+      if (!auth) return false;                   // خرج أثناء الطلب
+      if (t.ok) { auth = sessionOf(cur.user, cur.role, t.j); saveAuth(auth); return true; }
+      if (t.status === 400 || t.status === 401 || t.status === 403) {
+        const again = loadAuth();
+        if (again && again.refresh !== cur.refresh) { auth = again; return true; }
+        stopHeartbeat(); auth = null; saveAuth(null); loginErr = "Session ended, sign in again"; render();
+      }
+      return false;
+    } catch (e) { return false; }
+  })().finally(() => { refreshing = null; });
+  return refreshing;
+}
+
+async function doLogin() {
+  if (loginBusy) return;
+  // يقبل «admin» أو الإيميل الكامل؛ وتُزال علامات الاتجاه الخفية من كيبورد العربي
+  const typed = (loginUser || "").replace(/[\s\u200e\u200f\u202a-\u202e]/g, "").toLowerCase();
+  const u = Object.keys(ACCOUNTS).find((k) => ACCOUNTS[k].email === typed) || typed;
+  const acc = ACCOUNTS[u];
+  if (!acc || !loginPass) { loginErr = "Wrong username or password"; loginPass = ""; render(); return; }
+  loginBusy = true;
+  try {
+    const t = await tokenRequest("password", { email: acc.email, password: loginPass });
+    if (t.ok) { auth = sessionOf(u, acc.role, t.j); saveAuth(auth); loginErr = ""; }
+    else loginErr = t.status === 429 ? "Too many attempts, wait a minute" : "Wrong username or password";
+  } catch (e) { loginErr = "No connection"; }
+  loginBusy = false; loginPass = ""; render();
+  if (auth) { startHeartbeat(); lastRemoteStamp = null; pollRemote(true); }
+}
+function logout() { stopHeartbeat(); auth = null; saveAuth(null); render(); }
+function renderLogin() {
+  $("app").innerHTML = `
+  <div class="top"><div class="title">Rolex Calculator</div></div>
+  <div class="card" style="margin-top:60px;text-align:left">
+    <div style="font-weight:700;color:var(--grn);margin-bottom:14px;font-size:16px;text-align:center">Sign in</div>
+    <span class="lbl">Username or email</span>
+    <input id="loginUser" class="ltr" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" value="${esc(loginUser)}" oninput="loginUser=this.value" onkeydown="if(event.key==='Enter'){document.getElementById('loginPass').focus()}">
+    <div style="margin-top:10px"><span class="lbl">Password</span>
+    <input id="loginPass" type="password" class="ltr" value="${esc(loginPass)}" oninput="loginPass=this.value" onkeydown="if(event.key==='Enter'){doLogin()}"></div>
+    ${loginErr ? `<div class="bar bad" style="margin-top:10px">${esc(loginErr)}</div>` : ""}
+    <button class="save on" style="margin-top:14px" onclick="doLogin()">Log in</button>
+  </div>`;
+  const e = $("loginUser");
+  if (e && !loginUser) e.focus(); else { const p = $("loginPass"); if (p && loginUser) p.focus(); }
+}
+
+// ===== مزامنة القواعد بين الأجهزة (Supabase) =====
+// يزامن فقط "القواعد" (fams/deleted) - الأسعار المدخلة وسجل آخر ساعة محلية لكل جهاز
+const SUPA_URL = "https://mfwiznrzcldcgrlzcmri.supabase.co";
+const SUPA_KEY = "sb_publishable_nzUBYC-lPrEqbgbUclc7Kw_riHjoKOf";
+const supaHeaders = () => ({ apikey: SUPA_KEY, Authorization: `Bearer ${auth ? auth.token : SUPA_KEY}` });
+let lastRemoteStamp = null, syncOnline = null;
+
+async function remoteFetch() {
+  try {
+    if (!(await ensureToken())) return null;
+    const r = await fetch(`${SUPA_URL}/rest/v1/pricing_rules?id=eq.shared&select=data,updated_at`, { headers: supaHeaders() });
+    if (!r.ok) { syncOnline = false; return null; }
+    const rows = await r.json();
+    syncOnline = true;
+    return rows[0] || null;
+  } catch (e) { syncOnline = false; return null; }
+}
+async function remotePush() {
+  if (lastRemoteStamp === null || cfg.fams.some((f) => f.id === WAIT_ID)) {
+    saveWarning("NOT saved — data not loaded from server yet. Reload and try again");
+    return;
+  }
+  let saved = false;
+  try {
+    const body = JSON.stringify({ data: { fams: cfg.fams, deleted: cfg.deleted, ...(cfg.newPrices ? { newPrices: cfg.newPrices } : {}) }, updated_at: new Date().toISOString() });
+    if (await ensureToken()) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/pricing_rules?id=eq.shared`, {
+        method: "PATCH",
+        headers: { ...supaHeaders(), "Content-Type": "application/json", Prefer: "return=representation" },
+        body,
+      });
+      // قاعدة البيانات ترجع قائمة فارغة لمن لا يملك الصلاحية — ليست نجاحًا
+      if (r.ok) { const rows = await r.json(); if (rows[0]) { lastRemoteStamp = rows[0].updated_at; saved = true; } }
+      if (saved) { const w = document.getElementById("saveWarn"); if (w) w.remove(); }
+    }
+  } catch (e) {}
+  syncOnline = saved;
+  render();
+  if (!saved) saveWarning("NOT saved to server — check sign in / connection, then save again");
+}
+// شريط ثابت خارج #app حتى لا يمسحه التصيير (toast لا يظهر إلا داخل نافذة التصدير)
+function saveWarning(m) {
+  let el = document.getElementById("saveWarn");
+  if (!el) {
+    el = document.createElement("div"); el.id = "saveWarn";
+    el.style.cssText = "position:fixed;left:12px;right:12px;top:12px;z-index:9999;background:#8B1E1E;color:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:600;text-align:center";
+    el.onclick = () => el.remove();
+    document.body.appendChild(el);
+  }
+  el.textContent = m;
+}
+// ===== جلسات نشطة (لكشف مشاركة الباسورد) =====
+const DEVICE_KEY = "rolexPricer.deviceId.v1";
+const ACTIVE_WINDOW_MS = 90 * 1000; // آخر نبضة خلال آخر 90 ثانية = "نشط الآن"
+function getDeviceId() {
+  let id = null;
+  try { id = localStorage.getItem(DEVICE_KEY); } catch (e) {}
+  if (!id) { id = uid(); try { localStorage.setItem(DEVICE_KEY, id); } catch (e) {} }
+  return id;
+}
+let heartbeatTimer = null;
+async function sendHeartbeat() {
+  if (!auth) return;
+  try {
+    if (!(await ensureToken())) return;
+    await fetch(`${SUPA_URL}/rest/v1/active_sessions`, {
+      method: "POST",
+      headers: { ...supaHeaders(), "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify({ id: getDeviceId(), role: auth.role, user_name: auth.user, last_seen: new Date().toISOString() }),
+    });
+  } catch (e) {}
+}
+function startHeartbeat() {
+  sendHeartbeat();
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(sendHeartbeat, 25000);
+}
+function stopHeartbeat() {
+  if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+  try {
+    fetch(`${SUPA_URL}/rest/v1/active_sessions?id=eq.${getDeviceId()}`, { method: "DELETE", headers: supaHeaders(), keepalive: true });
+  } catch (e) {}
+}
+let sessionsView = null, sessionsLoading = false;
+async function loadActiveSessions() {
+  sessionsLoading = true; render();
+  try {
+    await ensureToken();
+    const cutoff = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+    const r = await fetch(`${SUPA_URL}/rest/v1/active_sessions?last_seen=gte.${cutoff}&select=id,role,user_name,last_seen&order=last_seen.desc`, { headers: supaHeaders() });
+    sessionsView = r.ok ? await r.json() : [];
+  } catch (e) { sessionsView = []; }
+  sessionsLoading = false; render();
+}
+
+function applyRemoteFams(remoteData) {
+  if (remoteData && remoteData.newPrices) cfg.newPrices = remoteData.newPrices;
+  if (!remoteData || !remoteData.fams || !remoteData.fams.length) return;
+  cfg.fams = remoteData.fams.map((f) => ({ ...f, items: (f.items || []).map(normItem) }));
+  cfg.deleted = remoteData.deleted || [];
+  // المزامنة كانت تستبدل القائمة كل ٥ ثوانٍ فتمسح أي عائلة افتراضية
+  // جديدة لم تُحفظ بعد في Supabase — وهذا ما أخفى عائلات كارتير.
+  // ندمج الافتراضيات غير المحذوفة بنفس منطق boot.
+  for (const df of FAMS) {
+    if (cfg.deleted.includes(df.id)) continue;
+    const uf = cfg.fams.find((x) => x.id === df.id);
+    if (!uf) { cfg.fams.push(JSON.parse(JSON.stringify(df))); continue; }
+    for (const di of df.items) {
+      if (cfg.deleted.includes(di.id)) continue;
+      if (!uf.items.find((x) => x.id === di.id)) uf.items.push(normItem(di));
+    }
+  }
+  save(cfg);
+}
+async function pollRemote(silent) {
+  const row = await remoteFetch();
+  // لا تصيير إن لم يتغيّر شيء: كان يُعاد بناء الصفحة كل ٥ ثوانٍ فيمسح
+  // موضع سحب الشريط وهو يتصفّح. ولا شيء في الواجهة يعرض حالة الاتصال.
+  if (!row || row.updated_at === lastRemoteStamp) return;
+  const changed = lastRemoteStamp !== null;
+  lastRemoteStamp = row.updated_at;
+  applyRemoteFams(row.data);
+  let f = cfg.fams.find((x) => x.id === famId) || famsOf(brand)[0] || cfg.fams[0];
+  famId = f.id;
+  if (!f.items.find((x) => x.id === itemId)) itemId = f.items[0].id;
+  if (typedFor !== itemId) loadPrice(itemId, true);
+  if (changed && !silent) toast("Rules updated from another device ✓");
+  render();
+}
+
+// ===== الحالة =====
+let cfg, famId, itemId, year = CURRENT_YEAR, price = "", altPick = null,
+    sheet = null, q = "", details = false, draft = null, dirty = false, saveState = null, ioText = "", ioMsg = "",
+    mode = "used", // "used" = مارجن مستخدم (الحساب الأصلي بعمر/قرنتي) | "new" = مارجن جديد مباشرة على السعر المدخل
+    inputCur = "kwd"; // عملة الإدخال: "kwd" = دينار (الافتراضي) | "qar" = ريال. كل الحساب داخليًا بالدينار، الريال يُحوّل عند الإدخال
+const normBase = { usedPct: 0, nMin: 0, nMax: 0, mMin: 0, mMax: 0, g: 0, gw: 0, w: 0, o: 0, note: "", ref: "" };
+const normItem = (i) => ({ ...normBase, ...i });
+
+// ===== سعر الجديد التلقائي من قروبَي تلقرام (يكتبه السيرفر في newPrices) =====
+// السعر يُربط بالصنف بالمعرّف نفسه بعد مطابقة صارمة على السيرفر؛ ما لا يُطابق
+// بيقين لا يصل هنا أصلًا فتبقى الخانة فارغة ويُدخَل السعر يدويًا.
+let priceSrc = "none"; // auto | manual | none
+let typedFor = null;   // الصنف الذي كتب المستخدم سعره بيده في هذه الجلسة
+const autoOf = (id) => (cfg.newPrices && cfg.newPrices.prices && cfg.newPrices.prices[id]) || null;
+function autoVal(a) {
+  if (inputCur === "qar") return String(a.qar || riyal(a.kd));
+  return String(a.kd);
+}
+function loadPrice(id, keepTyped) {
+  if (!keepTyped) typedFor = null;
+  const a = autoOf(id);
+  if (a && a.kd > 0) { price = autoVal(a); priceSrc = "auto"; return; }
+  price = cfg.prices[id] || ""; priceSrc = price ? "manual" : "none";
+}
+function srcLabel() {
+  const a = autoOf(itemId);
+  if (priceSrc === "auto" && a) {
+    const d = new Date(String(a.date).replace(" ", "T") + "Z");
+    const days = Math.floor((Date.now() - d.getTime()) / 864e5);
+    const lab = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const stale = a.src !== "cartier" && days > 10;
+    return { t: `Auto · ${a.src === "cartier" ? "Cartier" : "Rolex"} group · ${lab}${stale ? " · old" : ""}`, warn: stale };
+  }
+  return { t: priceSrc === "manual" ? "Manual price" : "No group price", warn: false };
+}
+
+function boot() {
+  const s = load();
+  const base = normBase;
+  const norm = normItem;
+  cfg = { rate: 84, curr2: "QAR", prices: {}, lastItem: null, deleted: [], fams: null };
+
+  if (s && s.fams && s.fams.length) {
+    // المحفوظ هو المرجع — يشمل ما أضافه المستخدم
+    cfg.rate = s.rate ?? cfg.rate;
+    cfg.curr2 = s.curr2 ?? cfg.curr2;
+    cfg.prices = s.prices || {};
+    cfg.lastItem = s.lastItem || null;
+    cfg.deleted = s.deleted || [];
+    cfg.fams = s.fams.map((f) => ({ ...f, items: (f.items || []).map(norm) }));
+    // أضف أي عائلة/رفرنس افتراضي جديد لم يحذفه المستخدم ولا يملكه
+    for (const df of FAMS) {
+      if (cfg.deleted.includes(df.id)) continue;
+      const uf = cfg.fams.find((x) => x.id === df.id);
+      if (!uf) { cfg.fams.push(JSON.parse(JSON.stringify(df))); continue; }
+      for (const di of df.items) {
+        if (cfg.deleted.includes(di.id)) continue;
+        if (!uf.items.find((x) => x.id === di.id)) uf.items.push(norm(JSON.parse(JSON.stringify(di))));
+      }
+    }
+  } else {
+    cfg.fams = waitFams();
+  }
+
+  let f = cfg.fams[0], i = f.items[0];
+  if (cfg.lastItem) for (const ff of cfg.fams) { const x = ff.items.find((y) => y.id === cfg.lastItem); if (x) { f = ff; i = x; break; } }
+  famId = f.id; itemId = i.id; loadPrice(i.id);
+}
+
+// البراند: العائلات القديمة بلا حقل brand تُعامل رولكس، فبيانات
+// Supabase الحالية تبقى كما هي ولا يُكسر شيء.
+const BRANDS = ["Rolex", "Cartier"];
+// البيانات المحفوظة تحمل «كارتير» بالعربي في ٨ عائلات — نطبّعها هنا
+// فلا يفرغ تبويب كارتير، وتبقى تعمل لو رجعت بيانات قديمة
+const BRAND_AR = { "رولكس": "Rolex", "كارتير": "Cartier" };
+const normBrand = (b) => BRAND_AR[b] || b || "Rolex";
+const brandOf = (f) => normBrand(f.brand);
+let brand = normBrand(localStorage.getItem("brand"));
+const famsOf = (b) => cfg.fams.filter((f) => brandOf(f) === b);
+let qry = "";
+// نوع كيبورد البحث. رقميّ افتراضًا لأن كل المراجع تبدأ بأرقام، ولأن
+// كيبورد الآيفون كان يرجع لوضع الحروف بين رقم وآخر. والتبديل محفوظ
+// لأن الموظف يبحث بطريقة واحدة غالبًا. (المالك ٢٠٢٦-١١-٠١)
+let qmode = localStorage.getItem("qmode") === "abc" ? "abc" : "num";
+
+function toggleQMode() {
+  qmode = qmode === "num" ? "abc" : "num";
+  localStorage.setItem("qmode", qmode);
+  const old = $("q");
+  if (!old) { render(); return; }
+  // الآيفون يحفظ نوع الكيبورد للعنصر نفسه، فتغيير inputmode عليه لا
+  // يُقرأ ولو أُعيد التركيز. فنستبدل العنصر بنسخةٍ منه ليقرأ النوع من
+  // جديد. وإعادة البناء هنا مقصودة: تقع بضغطة المستخدم لا أثناء كتابته.
+  const num = qmode === "num";
+  const v = old.value;
+  const fresh = old.cloneNode(false);     // يحمل id وoninput معه
+  fresh.setAttribute("inputmode", num ? "numeric" : "text");
+  fresh.setAttribute("placeholder", num ? "Search by reference" : "Search ref or name");
+  fresh.value = v;
+  old.parentNode.replaceChild(fresh, old);
+  const b = $("qmb");
+  if (b) b.textContent = num ? "ABC" : "123";
+  fresh.focus();
+  try { fresh.setSelectionRange(v.length, v.length); } catch (e) {}
+}
+
+// تطبيع البحث: تُطوى الأرقام العربية، ويُحذف كل ما ليس حرفًا أو رقمًا —
+// فـ«126710 BLNR» و«126710blnr» و«١٢٦٧١٠» سواء.
+const AR_DIG = "٠١٢٣٤٥٦٧٨٩";
+const qnorm = (s) => String(s == null ? "" : s)
+  .replace(/[٠-٩]/g, (d) => String(AR_DIG.indexOf(d)))
+  .replace(/[^0-9a-zA-Z\u0600-\u06FF]/g, "").toUpperCase();
+
+// رتبة الكلمة الواحدة في ساعةٍ ما. -1 = لا تطابق.
+function rankTok(n, r, nm, fn) {
+  if (r && r.indexOf(n) === 0) return 0;          // الرفرنس يبدأ بها — الأقرب
+  // المرجع الكامل «126334-0002» يحمل لاحقة المينا، والمخزَّن «126334».
+  if (r && r.length >= 5 && n.indexOf(r) === 0) return 1;
+  if (r && r.indexOf(n) > -1) return 2;
+  if (nm.indexOf(n) > -1) return 3;
+  if (fn.indexOf(n) > -1) return 4;
+  return -1;
+}
+
+function searchItems(raw) {
+  // كل كلمة شرط: «126710 باتمان» يعني الرقم **و** الاسم معًا، لا أحدهما.
+  const toks = String(raw == null ? "" : raw).trim().split(/\s+/)
+    .map(qnorm).filter(Boolean);
+  if (!toks.length) return [];
+  const out = [];
+  cfg.fams.forEach((f) => (f.items || []).forEach((i) => {
+    const r = qnorm(i.ref), nm = qnorm(i.name), fn = qnorm(f.name);
+    let best = 99, all = true;
+    for (const n of toks) {
+      const k = rankTok(n, r, nm, fn);
+      if (k < 0) { all = false; break; }
+      if (k < best) best = k;
+    }
+    if (all) out.push({ rank: best, f: f, i: i });
+  }));
+  // كُتب الرقم والاسم ملتصقين بلا مسافة («126710باتمان») — نفصلهما ونعيد.
+  if (!out.length && toks.length === 1) {
+    const parts = toks[0].match(/[0-9]+|[A-Z؀-ۿ]+/g);
+    if (parts && parts.length > 1) return searchItems(parts.join(" "));
+  }
+  out.sort((a, b) => a.rank - b.rank ||
+    String(a.i.ref || "").localeCompare(String(b.i.ref || "")));
+  return out.slice(0, 30);
+}
+
+// لا يُعاد بناء الصفحة عند كل حرف: الحقل يُحذف ويُبنى فيُعاد التركيز
+// إليه، والآيفون يرجّع الكيبورد لوضع الحروف عند كل إعادة تركيز — فيضطر
+// الموظف لتبديله بين كل رقمين. (أبلغ عنه المالك ٢٠٢٦-١١-٠١ مرتين.)
+// فنحدّث منطقة الاختيار وحدها، والحقل يبقى حيًّا كما تركه.
+// منطقة الاختيار: النتائج أو الأشرطة. مستقلّة لأن البحث يحدّثها وحدها.
+function pickZoneHTML() {
+  // من أول حرف لا من الثاني: المرور بحرفٍ واحد كان يعرض كل الموديلات
+  // فجأةً وهو يمسح الرقم ليكتب الاسم. (المالك ٢٠٢٦-١١-٠١)
+  const qres = qnorm(qry).length >= 1 ? searchItems(qry) : null;
+  const fam = curFam();
+  if (qres !== null) {
+    return qres.length
+      ? `<div class="qres" data-sk="qres">${qres.map((h) =>
+          `<button class="qr" onclick="jumpTo('${h.f.id}','${h.i.id}')">
+            <span class="qr-ref num ltr">${esc(h.i.ref || "—")}</span>
+            <span class="qr-n">${esc(h.i.name)}</span>
+            <span class="qr-f">${esc(h.f.name)}</span></button>`).join("")}</div>`
+      : `<div class="qnone">No match for <b class="num ltr">${esc(qry)}</b></div>`;
+  }
+  return `<div class="strip bstrip" data-sk="brands">
+    ${BRANDS.map((b) => `<button class="f b ${b === brand ? "on" : ""}" onclick="pickBrand('${b}')">${esc(b)}</button>`).join("")}
+  </div>
+  <div class="strip" data-sk="fams">
+    ${famsOf(brand).map((f) => `<button class="f ${f.id === famId ? "on" : ""}" onclick="pickFam('${f.id}')">${esc(f.name)}</button>`).join("")}
+    ${isAdmin() ? `<button class="f add" onclick="ask('fam')">+ Family</button>` : ""}
+  </div>
+  <div class="igrid">
+    ${fam.items.map((i) => `<button class="i ${i.id === itemId ? "on" : ""}" onclick="pickItem('${i.id}')">
+      <span class="n">${esc(i.name)}</span>${i.ref ? `<span class="r">${esc(i.ref)}</span>` : ""}</button>`).join("")}
+    ${isAdmin() ? `<button class="i add" onclick="ask('item')">+ Ref</button>` : ""}
+  </div>`;
+}
+
+function setQ(v) {
+  qry = v;
+  const z = $("pickzone");
+  if (!z) { render(); return; }
+  z.innerHTML = pickZoneHTML();
+  const x = $("qx");
+  if (x) x.style.display = qry ? "" : "none";
+}
+
+function clearQ() { qry = ""; render(); }
+
+function jumpTo(fid, iid) {
+  if (_swipe) return;
+  const f = cfg.fams.find((x) => x.id === fid);
+  if (!f) return;
+  brand = brandOf(f); localStorage.setItem("brand", brand);
+  famId = fid; itemId = iid;
+  loadPrice(iid); altPick = null; cfg.lastItem = iid; save(cfg);
+  qry = ""; render();
+}
+
+function pickBrand(b) {
+  if (_swipe) return;
+  brand = b; localStorage.setItem("brand", b);
+  const list = famsOf(b);
+  if (list.length) { famId = list[0].id; itemId = (list[0].items[0] || {}).id; }
+  render();
+}
+const curFam = () => cfg.fams.find((f) => f.id === famId) || famsOf(brand)[0] || cfg.fams[0];
+const curItem = () => { const f = curFam(); return f.items.find((i) => i.id === itemId) || f.items[0]; };
+const persist = () => { cfg.prices[itemId] = price; cfg.lastItem = itemId; return save(cfg); };
+
+// ===== الحساب =====
+const fmt = (n) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
+const cardOf = (y) => y >= 2021 ? "New Card" : y >= 2016 ? "White Card" : "Olive Card";
+const riyal = (k) => roundTen(k / (cfg.rate || 84) * 1000);
+// عكس riyal(): يحوّل مبلغ ريال مُدخل إلى دينار للحساب الداخلي
+const qarToKwd = (q) => q / 1000 * (cfg.rate || 84);
+// الحساب الداخلي كله بالدينار. هذي الدوال تعرضه بعملة الإدخال المختارة،
+// فلمّا يختار المستخدم الريال لا يظهر دينار في أي مكان — طلب المالك
+// ٢٠٢٦-٠٩-١٦: «مختار الريال، مفروض يطلع ريال بدون دينار ابدا».
+const disp = (k) => (k == null || isNaN(k)) ? k : (inputCur === "qar" ? riyal(k) : k);
+// النطاقات تحتاج تقريبًا أدق: riyal() يقرّب لأقرب ألف، فنطاق شراء
+// ١,٣٩٠–١,٤٥٠ د.ك ينهار إلى ١٧,٠٠٠–١٧,٠٠٠. التقريب لأقرب مئة يُبقيه نطاقًا.
+// تقريب واحد لكل شيء الآن، فـ dispR صار نفس disp. أُبقي الاسم لأن
+// مواضع العرض المقارِنة (النطاقات وجدول السنوات) تناديه.
+const dispR = disp;
+const unit = () => inputCur === "qar" ? (cfg.curr2 || "QAR") : "KWD";
+const copyLines = (sell, b) => inputCur === "qar"
+  ? `Sell ${fmt(riyal(sell))} ${cfg.curr2}\nBuy ${fmt(riyal(b.lo))}–${fmt(riyal(b.hi))} ${cfg.curr2}`
+  : `Sell ${fmt(sell)} KWD (${fmt(riyal(sell))} ${cfg.curr2})\nBuy ${fmt(b.lo)}–${fmt(b.hi)} KWD`;
+// القيمة المدخلة محوّلة دائمًا للدينار (حسب عملة الإدخال المختارة)
+const enteredKwd = () => { const v = parseFloat(price); return isNaN(v) ? NaN : (inputCur === "qar" ? qarToKwd(v) : v); };
+
+// قاعدة التقريب المعتمدة — أقرب ١٠، للدينار والريال معًا (قرار المالك
+// ٢٠٢٦-٠٩-١٦): ٤,٣٧٢ ← ٤,٣٧٠ و٤,٣٧٧ ← ٤,٣٨٠، والريال مثله ٦٢,١٠٨ ← ٦٢,١١٠.
+//
+// سبقتها قاعدة «٥٠ أو ٩٠» التي تسحب السعر لرقم ينتهي بـ٥٠ أو ٩٠، وكانت
+// تُنتج مرشّحَين يحيطان بالرقم الخام — ومن المرشّح الثاني يُبنى زر «أو».
+// بأقرب ١٠ لا يوجد مرشّح ثانٍ، فـ alt = null والزر يختفي من نفسه.
+// نتيجة مقصودة للقاعدة الجديدة لا سهو.
+const roundTen = (v) => Math.round(v / 10) * 10;
+function roundPrice(v) { return { main: roundTen(Math.max(v, 0)), alt: null }; }
+const r90 = (v) => roundTen(Math.max(v, 0));
+
+function calc(y, p, it) {
+  const lines = []; let run = p;
+  const d = p * (it.usedPct / 100);
+  lines.push({ t: `New → Used ${it.usedPct}%`, v: d }); run -= d;
+  const seg = {}, ord = [];
+  const push = (k, per, lab) => { if (!seg[k]) { seg[k] = { c: 0, per, lab }; ord.push(k); } seg[k].c++; };
+  for (let x = CURRENT_YEAR; x > y; x--) {
+    if (x >= 2022) push("g", it.g, "New-card years");
+    else if (x === 2021) { push("g", it.g, "New-card years"); push("gw", it.gw, "Card step: New → White"); }
+    else if (x >= 2016) push("w", it.w, "White-card years");
+    else push("o", it.o, "Olive-card years");
+  }
+  for (const k of ord) {
+    const s2 = seg[k], tot = s2.c * s2.per; run -= tot;
+    lines.push({ t: k === "gw" ? s2.lab : `${s2.lab}: ${s2.c} × ${s2.per}`, v: tot });
+  }
+  const exact = Math.max(run, 0), r = roundPrice(exact);
+  return { lines, exact, main: r.main, alt: r.alt };
+}
+const buyOf = (sell, min, max) => {
+  const a = r90(sell * (1 - max / 100)), b = r90(sell * (1 - min / 100));
+  return { lo: Math.min(a, b), hi: Math.max(a, b) };
+};
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $ = (id) => document.getElementById(id);
+let toastT = null;
+function toast(m) { ioMsg = m; render(); clearTimeout(toastT); toastT = setTimeout(() => { ioMsg = ""; render(); }, 2600); }
+const eraDot = (y) => y >= 2021 ? "#0B5C3F" : y >= 2016 ? "#9AA096" : "#7C7F4A";
+
+function render() {
+  if (!auth) { renderLogin(); return; }
+  const activeEl = document.activeElement;
+  const activeId = activeEl && activeEl.id;
+  const selStart = activeId && "selectionStart" in activeEl ? activeEl.selectionStart : null;
+  const selEnd = activeId && "selectionEnd" in activeEl ? activeEl.selectionEnd : null;
+  const scrollY = window.scrollY;
+  const shBodyOld = document.querySelector(".sh-body");
+  const shScroll = shBodyOld ? shBodyOld.scrollTop : null;
+  // موضع السحب الأفقي للأشرطة: التصيير يبني innerHTML من جديد فيضيع،
+  // فكان الشريط يرجع للبداية كلما لمس شيئًا أو وصلت مزامنة.
+  const sx = {};
+  document.querySelectorAll("[data-sk]").forEach((el) => { sx[el.dataset.sk] = el.scrollLeft; });
+
+  const fam = curFam(), it = curItem();
+  const p = enteredKwd(), has = !isNaN(p) && p > 0;
+  const isNew = mode === "new";
+  const buyMin = isNew ? it.nMin : it.mMin, buyMax = isNew ? it.nMax : it.mMax;
+  const buyPctTxt = buyMin === buyMax ? String(buyMin) : `${buyMin}–${buyMax}`;
+  let R = null;
+  if (has) {
+    if (isNew) {
+      // مارجن جديد: يُطبّق مباشرة على السعر المدخل، بدون خصم عمر/قرنتي -
+      // الساعة جديدة، ما فيه "استخدام" نخصمه أول.
+      R = { sell: p, alt: null, lines: [], exact: p, buy: buyOf(p, buyMin, buyMax) };
+    } else {
+      const c0 = calc(year, p, it);
+      const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
+      R = { ...c0, sell, alt: sell === c0.main ? c0.alt : c0.main, buy: buyOf(sell, buyMin, buyMax) };
+    }
+  }
+  const years = [];
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) years.push(y);
+
+  let h = `
+  <div class="top">
+    <button id="qmb" class="qmb" onclick="toggleQMode()">${qmode === "num" ? "ABC" : "123"}</button>
+    <div class="qbox">
+      <input id="q" class="qin" value="${esc(qry)}" oninput="setQ(this.value)"
+             placeholder="${qmode === "num" ? "Search by reference" : "Search ref or name"}"
+             autocomplete="off" spellcheck="false"
+             autocapitalize="none" autocorrect="off" enterkeyhint="search"
+             inputmode="${qmode === "num" ? "numeric" : "text"}">
+      <button id="qx" class="qx" style="display:${qry ? "" : "none"}" onclick="clearQ()">&times;</button>
+    </div>
+    <button class="btn-o" ${has && !isNew ? "" : "disabled"} onclick="openSheet('table')">Table</button>
+  </div>
+
+  <div id="pickzone">${pickZoneHTML()}</div>
+
+  <div style="display:flex;gap:8px;margin:2px 0 10px">
+    <button class="f ${isNew ? "on" : ""}" style="flex:1" onclick="setMode('new')">New</button>
+    <button class="f ${!isNew ? "on" : ""}" style="flex:1" onclick="setMode('used')">Used</button>
+  </div>
+
+  ${!isNew ? `<div class="ystrip" data-sk="years">
+    ${years.map((y) => `<button class="yb ${y === year ? "on" : ""}" onclick="setYear(${y})">
+      <span class="dot" style="background:${eraDot(y)}"></span>${y}</button>`).join("")}
+  </div>` : ""}
+
+  <div class="card">
+    <div class="head-r">
+      <span>${esc(fam.name)} ${esc(it.name)}${it.ref ? ` • <span class="num ltr" style="display:inline-block">${esc(it.ref)}</span>` : ""}</span>
+    </div>
+    <div class="srcln" style="font-size:11px;height:15px;line-height:15px;color:${srcLabel().warn ? "#B45309" : "var(--mut)"}">${esc(srcLabel().t)}</div>
+    ${!isNew ? `<div class="metarow"><span>Model ${year} • ${cardOf(year)}</span>
+      <span class="num">New: ${has ? fmt(parseFloat(price)) + (inputCur === "qar" ? " QAR" : " KWD") : "—"}</span></div>` : ""}
+    ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
+    <div class="big num" onclick="${has && !isNew ? "openSheet('full')" : ""}">${R ? fmt(disp(R.sell)) : "—"}</div>
+    <div class="sub num">${inputCur === "qar" ? esc(cfg.curr2) : `KWD${R ? ` • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}` : ""}`}</div>
+    ${!isNew ? `<div class="altslot">${R && R.alt !== null && disp(R.alt) !== disp(R.sell)
+      ? `<button class="chip" onclick="useAlt(${R.alt})">or ${fmt(disp(R.alt))}</button>` : ""}</div>` : ""}
+    <div class="buyslot">${R
+      ? `<div class="buy"><span>Buy ${isNew ? "new" : "used"} at (${buyPctTxt}%)</span>
+          <span class="num">${dispR(R.buy.lo) === dispR(R.buy.hi) ? fmt(dispR(R.buy.lo)) : fmt(dispR(R.buy.lo)) + " – " + fmt(dispR(R.buy.hi))} ${unit()}</span></div>`
+      : `<div class="hint">Enter the new price in ${inputCur === "qar" ? "QAR" : "KWD"} on the keypad below</div>`}</div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin:8px 0 2px">
+    <button class="f ${inputCur === "kwd" ? "on" : ""}" style="flex:1" onclick="setInputCur('kwd')">Enter in KWD</button>
+    <button class="f ${inputCur === "qar" ? "on" : ""}" style="flex:1" onclick="setInputCur('qar')">Enter in QAR</button>
+  </div>
+
+  <div class="pad"><div class="g">
+    ${[["1", ""], ["2", "ABC"], ["3", "DEF"], ["4", "GHI"], ["5", "JKL"], ["6", "MNO"], ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"], [".", null], ["0", ""], ["⌫", null]]
+      .map(([k, l]) => `<button class="k ${l === null ? "plain" : ""}" onclick="key('${k}')"><b>${k}</b>${l ? `<i>${l}</i>` : ""}</button>`).join("")}
+  </div></div>
+  <button class="link" onclick="key('C')">Clear price</button>
+
+  ${R ? `<div class="row2" style="margin-top:6px">
+    <button class="btn-p" onclick="copyOne()">Copy</button>
+    ${!isNew ? `<button class="btn-s" onclick="details=!details;render()">${details ? "Hide details" : "Details"}</button>` : ""}</div>` : ""}
+  ${R && details && !isNew ? `<div style="margin-top:8px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);text-align:right">
+    ${R.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(l.t)}</span><span class="num" style="color:var(--red)">−${fmt(l.v)}</span></div>`).join("")}
+    <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:5px;margin-top:4px"><span>Before rounding</span><span class="num">${fmt(disp(R.exact))}</span></div>
+  </div>` : ""}
+
+  <div style="display:flex;gap:8px;margin-top:6px">
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openRules()">Settings ⚙</button>` : ""}
+    ${isAdmin() ? `<button class="link" style="flex:1;margin-top:0" onclick="openSessions()">Sessions 👥</button>` : ""}
+    <button class="link" style="flex:1;margin-top:0" onclick="logout()">Log out (${esc(auth.user)})</button>
+  </div>`;
+
+  if (sheet === "table" && has && !isNew) h += sheetTable(p, it, fam, years);
+  if (sheet === "rules") h += sheetRules(fam, it);
+  if (sheet === "sessions") h += sheetSessions();
+  if (sheet === "ask") h += sheetAsk();
+  if (sheet === "full" && R) h += `<div class="full" onclick="closeSheet()">
+      <div class="t1">${esc(fam.name)} — ${esc(it.name)}</div>
+      <div class="t2 num">${year} • ${cardOf(year)}</div>
+      <div class="n">${fmt(disp(R.sell))}</div>
+      <div class="t3 num">${inputCur === "qar" ? esc(cfg.curr2) : `KWD • ${fmt(riyal(R.sell))} ${esc(cfg.curr2)}`}</div></div>`;
+
+  $("app").innerHTML = h;
+  if (sheet === "ask") { const e = $("askin"); if (e) { e.value = askVal; e.focus(); } }
+
+  if (activeId) {
+    const el = $(activeId);
+    if (el) {
+      el.focus({ preventScroll: true });
+      if (selStart != null && el.setSelectionRange) { try { el.setSelectionRange(selStart, selEnd); } catch (e) {} }
+    }
+  }
+  const shBodyNew = document.querySelector(".sh-body");
+  if (shBodyNew && shScroll != null) shBodyNew.scrollTop = shScroll;
+  document.querySelectorAll("[data-sk]").forEach((el) => {
+    if (sx[el.dataset.sk] != null) el.scrollLeft = sx[el.dataset.sk];
+  });
+  // وسّط العائلة المختارة فقط إن تغيّرت فعلًا — وإلا قاتلنا سحبَه
+  // كلما أراد أن يتصفّح العائلات دون أن يختار واحدة.
+  if (_lastFam !== famId) {
+    _lastFam = famId;
+    const st = document.querySelector('[data-sk="fams"]'), on = st && st.querySelector(".f.on");
+    if (st && on) {
+      const l = on.offsetLeft, r = l + on.offsetWidth;
+      if (l < st.scrollLeft || r > st.scrollLeft + st.clientWidth)
+        st.scrollLeft = Math.max(0, l - (st.clientWidth - on.offsetWidth) / 2);
+    }
+  }
+  window.scrollTo(0, scrollY);
+}
+
+function sheetAsk() {
+  const t = askType === "fam" ? "New family name" : "New reference name";
+  return `<div class="mask c" onclick="closeSheet()"><div class="pr" onclick="event.stopPropagation()">
+    <div style="font-weight:700;color:var(--grn);margin-bottom:10px">${t}</div>
+    <input id="askin" placeholder="${askType === "fam" ? "e.g. Cellini" : "e.g. WG 41 — New"}" oninput="askVal=this.value">
+    ${askType === "item" ? `<input id="askref" class="ltr" style="margin-top:8px" placeholder="Reference (optional)" oninput="askRef=this.value" value="${esc(askRef)}">` : ""}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-s" onclick="closeSheet()">Cancel</button>
+      <button class="btn-p" onclick="doAdd()">Add</button>
+    </div></div></div>`;
+}
+
+function sheetTable(p, it, fam, years) {
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>${esc(it.name)} — New ${fmt(disp(p))} ${unit()}</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      ${years.map((y) => { const r = calc(y, p, it), b = buyOf(r.main, it.mMin, it.mMax);
+        return `<button class="opt ${y === year ? "on" : ""}" onclick="setYear(${y});closeSheet()">
+          <span style="display:flex;align-items:center;gap:7px;font-weight:600" class="num"><span class="dot" style="background:${eraDot(y)}"></span>${y}</span>
+          <span class="num" style="font-weight:700;color:var(--grn)">${fmt(dispR(r.main))}</span>
+          <span class="num" style="font-size:12px;color:var(--mut)">Buy ${fmt(dispR(b.lo))}–${fmt(dispR(b.hi))}</span></button>`;
+      }).join("")}
+    </div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="copyTable()">Copy table</button></div>
+  </div></div>`;
+}
+
+function timeAgo(iso) {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
+function sheetSessions() {
+  const rows = sessionsView || [];
+  const adminRows = rows.filter((r) => r.role === "admin");
+  const viewerRows = rows.filter((r) => r.role !== "admin");
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>Active sessions</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:10px">Any device that sent a heartbeat in the last 90 seconds counts as active now. More than one device on the same account at the same time means the password is shared.</div>
+      ${sessionsLoading ? `<div class="bar">Loading…</div>` : `
+      <div class="g2">
+        <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Admin</span><span class="p" style="font-size:20px;margin-top:4px">${adminRows.length}</span></div>
+        <div class="opt on" style="justify-content:center;flex-direction:column"><span class="n">Purchase</span><span class="p" style="font-size:20px;margin-top:4px">${viewerRows.length}</span></div>
+      </div>
+      <div class="sec">Details</div>
+      ${rows.length === 0 ? `<div class="bar">No active devices</div>` : rows.map((r) => `
+        <div class="opt">
+          <span class="n">${esc(r.user_name)} <span style="color:var(--mut);font-weight:400">(${esc(r.role)})</span></span>
+          <span class="p">${timeAgo(r.last_seen)}</span>
+        </div>`).join("")}
+      `}
+    </div>
+    <div class="sh-foot"><button class="btn-p" style="width:100%" onclick="loadActiveSessions()">Refresh</button></div>
+  </div></div>`;
+}
+function openSessions() {
+  if (!isAdmin()) return;
+  sheet = "sessions"; sessionsView = null; render();
+  loadActiveSessions();
+}
+
+function sheetRules(fam, it) {
+  const d = draft, stOK = save(cfg);
+  return `<div class="mask" onclick="closeSheet()"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-top"><b>${esc(it.name)} settings</b><button class="x" onclick="closeSheet()">✕</button></div>
+    <div class="sh-body">
+      <div class="bar ${stOK ? "" : "bad"}">Storage: ${stOK ? "working ✓ — your edits are saved on this device" : "not working ✗ — use the backup below"}</div>
+      ${dirty ? '<div class="bar warn" style="margin-top:8px">Unsaved changes — press “Save changes”</div>' : ""}
+
+      <div class="sec">Reference: ${esc(it.name)}</div>
+      <span class="lbl">Name</span><input id="d_name" value="${esc(d.name)}" oninput="setD('name',this.value)">
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">Reference</span><input id="d_ref" class="ltr" value="${esc(d.ref)}" oninput="setD('ref',this.value)"></div>
+        <div><span class="lbl">Note</span><input id="d_note" value="${esc(d.note)}" oninput="setD('note',this.value)"></div>
+      </div>
+      <div style="margin-top:8px"><span class="lbl">New → Used %</span><input id="d_usedPct" inputmode="decimal" value="${esc(d.usedPct)}" oninput="setD('usedPct',this.value)"></div>
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">New margin from %</span><input id="d_nMin" inputmode="decimal" value="${esc(d.nMin)}" oninput="setD('nMin',this.value)"></div>
+        <div><span class="lbl">New margin to %</span><input id="d_nMax" inputmode="decimal" value="${esc(d.nMax)}" oninput="setD('nMax',this.value)"></div>
+      </div>
+      <div class="g2" style="margin-top:8px">
+        <div><span class="lbl">Used margin from %</span><input id="d_mMin" inputmode="decimal" value="${esc(d.mMin)}" oninput="setD('mMin',this.value)"></div>
+        <div><span class="lbl">Used margin to %</span><input id="d_mMax" inputmode="decimal" value="${esc(d.mMax)}" oninput="setD('mMax',this.value)"></div>
+      </div>
+
+      <div class="sec">Year ladder — this reference only</div>
+      <div class="g2">
+        <div><span class="lbl">New card / year</span><input id="d_g" inputmode="decimal" value="${esc(d.g)}" oninput="setD('g',this.value)"></div>
+        <div><span class="lbl">New → White step</span><input id="d_gw" inputmode="decimal" value="${esc(d.gw)}" oninput="setD('gw',this.value)"></div>
+        <div><span class="lbl">White card / year</span><input id="d_w" inputmode="decimal" value="${esc(d.w)}" oninput="setD('w',this.value)"></div>
+        <div><span class="lbl">Olive card / year</span><input id="d_o" inputmode="decimal" value="${esc(d.o)}" oninput="setD('o',this.value)"></div>
+      </div>
+
+      <div class="sec">Family: ${esc(fam.name)}</div>
+      <span class="lbl">Family name</span><input id="d_famName" value="${esc(d.famName)}" oninput="setD('famName',this.value)">
+
+      <div class="sec" style="color:var(--red)">Delete</div>
+      <div style="display:flex;gap:8px">
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteItem()">Delete this reference</button>
+        <button class="mini" style="border-color:var(--red);color:var(--red)" onclick="deleteFam()">Delete entire family</button>
+      </div>
+
+      <div class="sec">Conversion (global)</div>
+      <div class="g2">
+        <div><span class="lbl">Divisor (÷ then ×1000)</span><input id="d_rate" inputmode="decimal" value="${esc(d.rate)}" oninput="setD('rate',this.value)"></div>
+        <div><span class="lbl">Second currency name</span><input id="d_curr2" value="${esc(d.curr2)}" oninput="setD('curr2',this.value)"></div>
+      </div>
+
+      <div class="sec">Backup</div>
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:8px">Copy your settings and keep them in your notes. If they are lost, paste them back here.</div>
+      <div style="display:flex;gap:8px"><button class="mini" onclick="expCfg()">Copy my settings</button><button class="mini" onclick="impCfg()">Restore</button></div>
+      <textarea rows="3" class="ltr" style="margin-top:8px;font-size:12px" placeholder="Paste the text here to restore…" oninput="ioText=this.value">${esc(ioText)}</textarea>
+      ${ioMsg ? `<div style="font-size:12px;color:var(--grn);text-align:center;font-weight:600;margin-top:6px">${esc(ioMsg)}</div>` : ""}
+      <div class="small">Changes apply to this reference only and never touch another watch</div>
+    </div>
+    <div class="sh-foot">
+      <button class="save ${saveState === "ok" ? "ok" : dirty ? "on" : ""}" onclick="saveRules()">
+        ${saveState === "ok" ? "Saved ✓" : dirty ? "Save changes" : "Saved"}</button>
+    </div>
+  </div></div>`;
+}
+// ===== الحالة الإضافية =====
+let askType = "fam", askVal = "", askRef = "";
+
+// ===== التنقل =====
+// سحب الشريط كان ينتهي بنقرة فينتقل لعائلة/سنة لم يقصدها.
+// نتجاهل النقرة إن تحرّك الإصبع أكثر من ٨ بكسل.
+let _px = null, _swipe = false, _lastFam = null;
+addEventListener("pointerdown", (e) => { _px = e.clientX; _swipe = false; }, true);
+addEventListener("pointermove", (e) => { if (_px !== null && Math.abs(e.clientX - _px) > 8) _swipe = true; }, true);
+addEventListener("pointerup", () => { _px = null; }, true);
+addEventListener("pointercancel", () => { _px = null; }, true);
+
+function setYear(y) { if (_swipe) return; year = y; altPick = null; render(); }
+function useAlt(v) { altPick = v; render(); }
+function setMode(m) { mode = m; altPick = null; details = false; render(); }
+function setInputCur(c) { inputCur = c; altPick = null; if (priceSrc === "auto") loadPrice(itemId); render(); }
+function pickFam(f) {
+  if (_swipe) return;
+  famId = f; const ff = curFam(); itemId = ff.items[0].id;
+  loadPrice(itemId); altPick = null; cfg.lastItem = itemId; save(cfg); render();
+}
+function pickItem(i) {
+  if (_swipe) return;
+  itemId = i; loadPrice(i); altPick = null; cfg.lastItem = i; save(cfg); render();
+}
+function openSheet(s) { sheet = s; render(); }
+function closeSheet() { sheet = null; render(); }
+
+// ===== إضافة عائلة / رفرنس =====
+function ask(t) { if (!isAdmin()) return; askType = t; askVal = ""; askRef = ""; sheet = "ask"; render(); }
+function uid() { return "u" + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36); }
+function doAdd() {
+  if (!isAdmin()) return;
+  const nm = (askVal || "").trim();
+  if (!nm) { toast("Enter a name first"); return; }
+  if (askType === "fam") {
+    const id = uid();
+    cfg.fams.push({ id, name: nm, brand, items: [{
+      id: uid(), name: "Ref 1", ref: "", note: "",
+      usedPct: 0, nMin: 0, nMax: 0, mMin: 0, mMax: 0, g: 0, gw: 0, w: 0, o: 0,
+    }]});
+    famId = id; itemId = cfg.fams[cfg.fams.length - 1].items[0].id;
+  } else {
+    const f = curFam(), id = uid();
+    const base = curItem();
+    f.items.push({
+      id, name: nm, ref: (askRef || "").trim(), note: "",
+      usedPct: base.usedPct, nMin: base.nMin, nMax: base.nMax, mMin: base.mMin, mMax: base.mMax,
+      g: base.g, gw: base.gw, w: base.w, o: base.o,
+    });
+    itemId = id;
+  }
+  price = ""; cfg.lastItem = itemId; save(cfg);
+  sheet = null; render();
+  toast(askType === "fam" ? "Family added ✓" : "Reference added ✓");
+  remotePush();
+}
+
+// ===== الكيباد =====
+function key(k) {
+  let v = price;
+  if (k === "C") v = "";
+  else if (k === "⌫") v = v.slice(0, -1);
+  else if (k === ".") { if (v && !v.includes(".")) v += "."; }
+  else if (v.replace(".", "").length < 8) v = (v === "0" ? "" : v) + k;
+  price = v; priceSrc = v ? "manual" : "none"; typedFor = itemId; altPick = null; persist(); render();
+}
+document.addEventListener("keydown", (e) => {
+  const t = document.activeElement && document.activeElement.tagName;
+  if (t === "INPUT" || t === "TEXTAREA") return;
+  if ((e.key >= "0" && e.key <= "9") || e.key === ".") key(e.key);
+  else if (e.key === "Backspace") { e.preventDefault(); key("⌫"); }
+  else if (e.key === "Escape") { if (sheet) closeSheet(); else key("C"); }
+});
+
+// ===== الإعدادات =====
+function openRules() {
+  if (!isAdmin()) return;
+  const it = curItem(), f = curFam();
+  draft = {
+    name: it.name, ref: it.ref, note: it.note, famName: f.name,
+    usedPct: String(it.usedPct),
+    nMin: String(it.nMin), nMax: String(it.nMax),
+    mMin: String(it.mMin), mMax: String(it.mMax),
+    g: String(it.g), gw: String(it.gw), w: String(it.w), o: String(it.o),
+    rate: String(cfg.rate), curr2: cfg.curr2,
+  };
+  dirty = false; saveState = null; ioMsg = ""; sheet = "rules"; render();
+}
+function setD(k, v) { draft[k] = v; dirty = true; saveState = null; render(); }
+
+function saveRules() {
+  if (!isAdmin() || !dirty || !draft) return;
+  const n = (v, fb) => { const x = parseFloat(v); return isNaN(x) ? fb : x; };
+  const it = curItem(), f = curFam();
+  Object.assign(it, {
+    name: (draft.name || "").trim() || it.name, ref: (draft.ref || "").trim(), note: draft.note,
+    usedPct: n(draft.usedPct, it.usedPct),
+    nMin: n(draft.nMin, it.nMin), nMax: n(draft.nMax, it.nMax),
+    mMin: n(draft.mMin, it.mMin), mMax: n(draft.mMax, it.mMax),
+    g: n(draft.g, it.g), gw: n(draft.gw, it.gw), w: n(draft.w, it.w), o: n(draft.o, it.o),
+  });
+  f.name = (draft.famName || "").trim() || f.name;
+  cfg.rate = n(draft.rate, cfg.rate);
+  cfg.curr2 = draft.curr2 || cfg.curr2;
+
+  const wrote = save(cfg);
+  let ok = false;
+  if (wrote) {
+    const back = load();
+    const chk = back && back.fams && back.fams.map((x) => x.items).flat().find((x) => x.id === it.id);
+    ok = !!(chk && Number(chk.mMin) === it.mMin && Number(chk.g) === it.g);
+  }
+  dirty = false; saveState = ok ? "ok" : null;
+  if (!ok) ioMsg = "Could not save — copy your settings as a backup";
+  render();
+  if (ok) remotePush();
+  setTimeout(() => { saveState = null; render(); }, 2200);
+}
+
+// ===== حذف =====
+function markDeleted(id) { if (!cfg.deleted.includes(id)) cfg.deleted.push(id); }
+function deleteItem() {
+  if (!isAdmin()) return;
+  const f = curFam(), it = curItem();
+  if (f.items.length <= 1) { toast("Can’t delete the last reference in a family — delete the whole family"); return; }
+  if (!confirm(`Delete "${it.name}"?`)) return;
+  f.items = f.items.filter((x) => x.id !== it.id);
+  markDeleted(it.id);
+  delete cfg.prices[it.id];
+  itemId = f.items[0].id;
+  loadPrice(itemId);
+  cfg.lastItem = itemId;
+  save(cfg);
+  sheet = null; render();
+  toast("Reference deleted ✓");
+  remotePush();
+}
+function deleteFam() {
+  if (!isAdmin()) return;
+  if (cfg.fams.length <= 1) { toast("Can’t delete the last family"); return; }
+  const f = curFam();
+  if (!confirm(`Delete the "${f.name}" family and all its references?`)) return;
+  markDeleted(f.id);
+  for (const it of f.items) { markDeleted(it.id); delete cfg.prices[it.id]; }
+  cfg.fams = cfg.fams.filter((x) => x.id !== f.id);
+  const nf = cfg.fams[0];
+  famId = nf.id; itemId = nf.items[0].id;
+  loadPrice(itemId);
+  cfg.lastItem = itemId;
+  save(cfg);
+  sheet = null; render();
+  toast("Family deleted ✓");
+  remotePush();
+}
+
+// ===== نسخ =====
+function copyTxt(t) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+  const a = document.createElement("textarea");
+  a.value = t; a.style.position = "fixed"; a.style.opacity = "0";
+  document.body.appendChild(a); a.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(a);
+  return Promise.resolve();
+}
+function expCfg() { copyTxt(JSON.stringify(cfg)).then(() => toast("Settings copied ✓")); }
+function impCfg() {
+  try {
+    const o = JSON.parse(ioText);
+    if (!o || !o.fams) throw 0;
+    localStorage.setItem(KEY, JSON.stringify(o));
+    boot(); ioText = ""; sheet = null; render(); toast("Restored ✓");
+  } catch (e) { toast("Invalid text"); }
+}
+function copyOne() {
+  const it = curItem(), fam = curFam(), p = enteredKwd();
+  if (mode === "new") {
+    const b = buyOf(p, it.nMin, it.nMax);
+    copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • New\n${copyLines(p, b)}`)
+      .then(() => toast("Copied ✓"));
+    return;
+  }
+  const c0 = calc(year, p, it);
+  const sell = (altPick !== null && (altPick === c0.main || altPick === c0.alt)) ? altPick : c0.main;
+  const b = buyOf(sell, it.mMin, it.mMax);
+  copyTxt(`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} • ${year} • ${cardOf(year)}\n${copyLines(sell, b)}`)
+    .then(() => toast("Copied ✓"));
+}
+function copyTable() {
+  const it = curItem(), fam = curFam(), p = enteredKwd();
+  const rows = [`${brandOf(fam)} ${fam.name} ${it.name}${it.ref ? ` (${it.ref})` : ""} — New ${fmt(disp(p))} ${unit()}`];
+  for (let y = CURRENT_YEAR; y >= MIN_YEAR; y--) rows.push(`${y}: ${fmt(dispR(calc(y, p, it).main))} ${unit()}`);
+  copyTxt(rows.join("\n")).then(() => toast("Table copied ✓"));
+}
+
+auth = loadAuth();
+boot(); render();
+pollRemote(true);
+setInterval(() => pollRemote(false), 5000);
+if (auth) startHeartbeat();
+window.addEventListener("beforeunload", stopHeartbeat);
+
+// ── تحديث ذاتي ──────────────────────────────────────────────────────────
+// المالك حافظ الحاسبة كأيقونة على شاشة جواله، وهناك لا يوجد «تحديث قسري».
+// جيت‑هَب يخزّن الصفحة ١٠ دقائق، فيبقى يرى نسخة قديمة ويظن أن التعديل ما
+// وصل — صار فعلًا ٢٠٢٦-٠٩-١٦. فنسأل الخادم عن رقم النسخة كلما رجع للتطبيق،
+// وإن تغيّر نعيد التحميل. لا شيء يضيع: الساعة والسعر المُدخل محفوظان
+// بالتخزين المحلي (persist) ويرجعان بعد التحميل، والدخول يبقى قائمًا.
+// الفحص عند العودة فقط — لا مؤقّت — حتى لا تُعاد الصفحة وهو يكتب سعرًا.
+const BUILD = "2026-11-28-nodefaults";
+let lastBuildCheck = 0;
+async function checkBuild() {
+  if (Date.now() - lastBuildCheck < 60000) return;   // مرة كل دقيقة على الأكثر
+  lastBuildCheck = Date.now();
+  try {
+    const txt = await fetch(location.pathname + "?b=" + Date.now(), { cache: "no-store" }).then((r) => r.text());
+    const m = txt.match(/const BUILD = "([^"]+)"/);
+    // لا reload(): يقبل المخزَّن. نطلب العنوان بوسم النسخة فيُجلب جديدًا.
+    if (m && m[1] !== BUILD) location.replace(location.pathname + "?v=" + encodeURIComponent(m[1]));
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkBuild(); });
+window.addEventListener("focus", checkBuild);
+</script></body></html>
